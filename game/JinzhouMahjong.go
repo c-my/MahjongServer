@@ -9,19 +9,24 @@ type JinzhouMahjong struct {
 	wall       *model.Wall
 	playerTile []model.PlayerTile
 
-	gameCh chan model.GameMessage
+	gameRecvCh chan model.GameMsgRecv
+	gameSendCh chan model.GameMsgSend
 }
 
-func NewJinzhouMahjong(gameCh chan model.GameMessage) *JinzhouMahjong {
+//NewJinzhouMahjong return new Mahjong instance, with initiated game channels
+// and tile-wall
+func NewJinzhouMahjong(gameRecvCh chan model.GameMsgRecv, gameSendCh chan model.GameMsgSend) *JinzhouMahjong {
 	mahjong := JinzhouMahjong{}
 	mahjong.wall = model.NewWall(mahjong.GenerateTiles)
 	mahjong.playerTile = make([]model.PlayerTile, 4)
-	mahjong.gameCh = gameCh
+	mahjong.gameRecvCh = gameRecvCh
+	mahjong.gameSendCh = gameSendCh
 	return &mahjong
 }
 
+//Start will start the main loop of a game in a new goroutine
 func (m *JinzhouMahjong) Start() {
-	go gameLoop(m.gameCh)
+	go gameLoop(m.gameRecvCh, m.gameSendCh)
 }
 
 func (j JinzhouMahjong) GenerateTiles() []model.Tile {
@@ -61,13 +66,14 @@ func (j JinzhouMahjong) CanWin(tiles []model.Tile, newTile model.Tile) bool {
 	panic("implement me")
 }
 
-func gameLoop(gameCh chan model.GameMessage){
+func gameLoop(gameRecvCh chan model.GameMsgRecv, gameSendCh chan model.GameMsgSend) {
 	for {
 		select {
-		case msg := <-gameCh:
+		case msg := <-gameRecvCh:
 			log.Println("receive from game loop: ", msg)
 			// TODO:main logic here
-			gameCh<-"game received"
+			var msgSend model.GameMsgSend
+			gameSendCh <- msgSend
 		}
 	}
 }

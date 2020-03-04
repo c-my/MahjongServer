@@ -10,15 +10,18 @@ type Room struct {
 	connManager    *ConnManager
 	mahjongManager game.Manager
 
-	gameCh chan model.GameMessage
+	gameRecvCh chan model.GameMsgRecv
+	gameSendCh chan model.GameMsgSend
 }
 
 func NewRoom() *Room {
-	gameChannel := make(chan model.GameMessage)
+	gameRecvChannel := make(chan model.GameMsgRecv)
+	gameSendChannel := make(chan model.GameMsgSend)
 	return &Room{
-		gameCh:         gameChannel,
-		connManager:    NewConnManager(4, gameChannel),
-		mahjongManager: game.NewJinzhouMahjong(gameChannel),
+		gameRecvCh:     gameRecvChannel,
+		gameSendCh:     gameSendChannel,
+		connManager:    NewConnManager(4, gameRecvChannel, gameSendChannel),
+		mahjongManager: game.NewJinzhouMahjong(gameRecvChannel, gameSendChannel),
 	}
 }
 
@@ -29,4 +32,3 @@ func (r *Room) AddConn(conn *websocket.Conn) {
 func (r *Room) Start() {
 	r.mahjongManager.Start()
 }
-
