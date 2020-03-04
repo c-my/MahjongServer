@@ -3,23 +3,23 @@ package model
 import "sort"
 
 type PlayerTile struct {
-	handTiles []Tile
-	showTiles []Tile
+	HandTiles []Tile
+	ShowTiles []Tile
 }
 
 func (t *PlayerTile) SetHandTiles(tiles []Tile) {
-	t.handTiles = tiles
+	t.HandTiles = tiles
 	t.SortHand()
 }
 
 func (t *PlayerTile) GetHandTiles() []Tile {
-	return t.handTiles
+	return t.HandTiles
 }
 
 func (t *PlayerTile) SortHand() {
-	sort.Slice(t.handTiles, func(i, j int) bool {
-		iValue := int(t.handTiles[i].Suit)*10 + t.handTiles[i].Number
-		jValue := int(t.handTiles[j].Suit)*10 + t.handTiles[j].Number
+	sort.Slice(t.HandTiles, func(i, j int) bool {
+		iValue := int(t.HandTiles[i].Suit)*10 + t.HandTiles[i].Number
+		jValue := int(t.HandTiles[j].Suit)*10 + t.HandTiles[j].Number
 		return iValue < jValue
 	})
 }

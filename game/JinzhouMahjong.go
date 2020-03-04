@@ -26,7 +26,7 @@ func NewJinzhouMahjong(gameRecvCh chan model.GameMsgRecv, gameSendCh chan model.
 
 //Start will start the main loop of a game in a new goroutine
 func (m *JinzhouMahjong) Start() {
-	go gameLoop(m.gameRecvCh, m.gameSendCh)
+	go m.gameLoop(m.gameRecvCh, m.gameSendCh)
 }
 
 func (j JinzhouMahjong) GenerateTiles() []model.Tile {
@@ -66,14 +66,58 @@ func (j JinzhouMahjong) CanWin(tiles []model.Tile, newTile model.Tile) bool {
 	panic("implement me")
 }
 
-func gameLoop(gameRecvCh chan model.GameMsgRecv, gameSendCh chan model.GameMsgSend) {
+func (j *JinzhouMahjong) gameLoop(gameRecvCh chan model.GameMsgRecv, gameSendCh chan model.GameMsgSend) {
 	for {
 		select {
 		case msg := <-gameRecvCh:
 			log.Println("receive from game loop: ", msg)
+			switch msg.Action {
+			case model.Start:
+				j.dealTile()
+				availableActions := make([]int, 0)
+				availableActions = append(availableActions, model.Deal)
+				tilesCount := make([]int, 0)
+				for i := 0; i < 4; i++ {
+					tilesCount = append(tilesCount, len(j.playerTile[i].HandTiles))
+				}
+				var msgSend model.GameMsgSend
+				msgSend.MsgType = model.GameMsgType
+				msgSend.AvailableActions = availableActions
+				msgSend.CurrentTile = j.playerTile[0].HandTiles
+				msgSend.TilesCount = tilesCount
+				gameSendCh <- msgSend
+			}
 			// TODO:main logic here
-			var msgSend model.GameMsgSend
-			gameSendCh <- msgSend
+
 		}
+	}
+}
+
+func (j *JinzhouMahjong) dealTile() {
+	for i := 0; i < 3; i++ {
+		j.playerTile[0].HandTiles = append(j.playerTile[0].HandTiles, j.wall.FrontDraw())
+		j.playerTile[0].HandTiles = append(j.playerTile[0].HandTiles, j.wall.FrontDraw())
+		j.playerTile[0].HandTiles = append(j.playerTile[0].HandTiles, j.wall.FrontDraw())
+		j.playerTile[0].HandTiles = append(j.playerTile[0].HandTiles, j.wall.FrontDraw())
+		j.playerTile[1].HandTiles = append(j.playerTile[1].HandTiles, j.wall.FrontDraw())
+		j.playerTile[1].HandTiles = append(j.playerTile[1].HandTiles, j.wall.FrontDraw())
+		j.playerTile[1].HandTiles = append(j.playerTile[1].HandTiles, j.wall.FrontDraw())
+		j.playerTile[1].HandTiles = append(j.playerTile[1].HandTiles, j.wall.FrontDraw())
+		j.playerTile[2].HandTiles = append(j.playerTile[2].HandTiles, j.wall.FrontDraw())
+		j.playerTile[2].HandTiles = append(j.playerTile[2].HandTiles, j.wall.FrontDraw())
+		j.playerTile[2].HandTiles = append(j.playerTile[2].HandTiles, j.wall.FrontDraw())
+		j.playerTile[2].HandTiles = append(j.playerTile[2].HandTiles, j.wall.FrontDraw())
+		j.playerTile[3].HandTiles = append(j.playerTile[3].HandTiles, j.wall.FrontDraw())
+		j.playerTile[3].HandTiles = append(j.playerTile[3].HandTiles, j.wall.FrontDraw())
+		j.playerTile[3].HandTiles = append(j.playerTile[3].HandTiles, j.wall.FrontDraw())
+		j.playerTile[3].HandTiles = append(j.playerTile[3].HandTiles, j.wall.FrontDraw())
+	}
+	j.playerTile[0].HandTiles = append(j.playerTile[0].HandTiles, j.wall.FrontDraw())
+	j.playerTile[1].HandTiles = append(j.playerTile[1].HandTiles, j.wall.FrontDraw())
+	j.playerTile[2].HandTiles = append(j.playerTile[2].HandTiles, j.wall.FrontDraw())
+	j.playerTile[3].HandTiles = append(j.playerTile[3].HandTiles, j.wall.FrontDraw())
+
+	for i := 0; i <= 3; i++ {
+		j.playerTile[i].SortHand()
 	}
 }

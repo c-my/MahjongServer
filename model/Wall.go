@@ -28,7 +28,7 @@ func (w *Wall) FrontDraw() Tile {
 	return tile
 }
 
-func (w *Wall) backDraw() Tile {
+func (w *Wall) BackDraw() Tile {
 	if w.back < w.front {
 		panic("back-draw from empty wall")
 	}

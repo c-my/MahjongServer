@@ -25,10 +25,10 @@ func NewConnManager(playersCount int, gameRecvCh chan model.GameMsgRecv, gameSen
 
 func (m *ConnManager) SetConn(conn *websocket.Conn) {
 	m.conns = append(m.conns, *conn)
-	go connListener(conn, m.gameRecvCh)
+	go connListener(conn, m.gameRecvCh, m.gameSendCh)
 }
 
-func connListener(conn *websocket.Conn, gameCh chan model.GameMsgRecv) {
+func connListener(conn *websocket.Conn, gameRecvCh chan model.GameMsgRecv, gameSendCh chan model.GameMsgSend) {
 	for {
 		commonMsg := model.CommonMsg{}
 		_, msg, err := conn.ReadMessage()
@@ -49,9 +49,13 @@ func connListener(conn *websocket.Conn, gameCh chan model.GameMsgRecv) {
 			if err != nil {
 				panic("fail to decode game msg")
 			}
-			gameCh <- gameMsg
-			gameMsgSend := <-gameCh
-			conn.WriteJSON(gameMsgSend)
+			gameRecvCh <- gameMsg
+			gameMsgSend := <-gameSendCh
+			log.Println("send game msg to client")
+			err = conn.WriteJSON(gameMsgSend)
+			if err != nil {
+				log.Println("failed to send game msg")
+			}
 		}
 	}
 }

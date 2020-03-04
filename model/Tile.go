@@ -20,3 +20,7 @@ type Tile struct {
 func NewTile(suit Suit, number int) *Tile {
 	return &Tile{Suit: suit, Number: number}
 }
+
+func (t *Tile) Equals(another Tile) bool {
+	return t.Suit == another.Suit && t.Number == another.Number
+}

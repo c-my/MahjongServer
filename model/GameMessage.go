@@ -4,11 +4,13 @@ package model
 //	Action string `json:"action"`
 //}
 
+// Player actions
 const (
 	Start int = iota
-	Chow
-	Pong
-	Kong
+	Deal      //发牌
+	Chow      //吃
+	Pong      //碰
+	Kong      //杠
 	Win
 )
 
@@ -21,6 +23,8 @@ type GameMsgRecv struct {
 }
 
 type GameMsgSend struct {
+	MsgType int `json:"msg_type"`
+
 	CurrentTurn      int    `json:"current_turn"`
 	CurrentTile      []Tile `json:"current_tile"`
 	AvailableActions []int  `json:"available_actions"`
@@ -28,4 +32,6 @@ type GameMsgSend struct {
 	LastTile         Tile   `json:"last_tile"`
 	LastAction       int    `json:"last_action"`
 	LastOpenTile     []Tile `json:"last_open_tile"`
+
+	TilesCount []int `json:"tiles_count"`
 }
