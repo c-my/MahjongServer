@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/c-my/MahjongServer/rule"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -23,7 +24,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	room = NewRoom()
+	room = NewRoom(rule.NewJinzhouRule())
 	room.Start()
 
 	http.HandleFunc("/", handler)

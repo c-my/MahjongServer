@@ -20,13 +20,13 @@ func TestWall_Shuffle(t *testing.T) {
 }
 
 func TestWall_ReShuffle(t *testing.T) {
-	wall:=NewWall(generateSortedTiles)
+	wall := NewWall(generateSortedTiles)
 	oldTiles := make([]Tile, wall.Length())
 	copy(oldTiles, wall.tiles)
 	// sleep to get a different seed
 	time.Sleep(1)
 	wall.ReShuffle()
-	if isTileSliceEqual(oldTiles, wall.tiles){
+	if isTileSliceEqual(oldTiles, wall.tiles) {
 		t.Errorf("reshuffled walls is same as former")
 	}
 }
@@ -82,12 +82,12 @@ func generateSortedTiles() []Tile {
 	return tiles
 }
 
-func isTileSliceEqual(s1, s2 []Tile)bool{
-	if len(s1)!= len(s2){
+func isTileSliceEqual(s1, s2 []Tile) bool {
+	if len(s1) != len(s2) {
 		return false
 	}
-	for i:=0;i< len(s1);i++{
-		if !s1[i].Equals(s2[i]){
+	for i := 0; i < len(s1); i++ {
+		if !s1[i].Equals(s2[i]) {
 			return false
 		}
 	}

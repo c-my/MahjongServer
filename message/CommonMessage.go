@@ -1,4 +1,4 @@
-package model
+package message
 
 const (
 	GameMsgType int = iota

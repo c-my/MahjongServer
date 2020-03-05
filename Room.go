@@ -2,26 +2,27 @@ package main
 
 import (
 	"github.com/c-my/MahjongServer/game"
-	"github.com/c-my/MahjongServer/model"
+	"github.com/c-my/MahjongServer/message"
+	"github.com/c-my/MahjongServer/rule"
 	"github.com/gorilla/websocket"
 )
 
 type Room struct {
 	connManager    *ConnManager
-	mahjongManager game.Manager
+	mahjongManager *game.MahjongManager
 
-	gameRecvCh chan model.GameMsgRecv
-	gameSendCh chan model.GameMsgSend
+	gameRecvCh chan message.GameMsgRecv
+	gameSendCh chan message.GameMsgSend
 }
 
-func NewRoom() *Room {
-	gameRecvChannel := make(chan model.GameMsgRecv)
-	gameSendChannel := make(chan model.GameMsgSend)
+func NewRoom(rule rule.MahjongRule) *Room {
+	gameRecvChannel := make(chan message.GameMsgRecv)
+	gameSendChannel := make(chan message.GameMsgSend)
 	return &Room{
 		gameRecvCh:     gameRecvChannel,
 		gameSendCh:     gameSendChannel,
 		connManager:    NewConnManager(4, gameRecvChannel, gameSendChannel),
-		mahjongManager: game.NewJinzhouMahjong(gameRecvChannel, gameSendChannel),
+		mahjongManager: game.NewMahjongManager(gameRecvChannel, gameSendChannel, rule),
 	}
 }
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/c-my/MahjongServer/model"
+	"github.com/c-my/MahjongServer/message"
 	"github.com/gorilla/websocket"
 	"log"
 )
@@ -11,11 +11,11 @@ type ConnManager struct {
 	playersCount int
 	conns        []websocket.Conn
 
-	gameRecvCh chan model.GameMsgRecv
-	gameSendCh chan model.GameMsgSend
+	gameRecvCh chan message.GameMsgRecv
+	gameSendCh chan message.GameMsgSend
 }
 
-func NewConnManager(playersCount int, gameRecvCh chan model.GameMsgRecv, gameSendCh chan model.GameMsgSend) *ConnManager {
+func NewConnManager(playersCount int, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) *ConnManager {
 	return &ConnManager{playersCount: playersCount,
 		conns:      make([]websocket.Conn, 0),
 		gameRecvCh: gameRecvCh,
@@ -28,9 +28,9 @@ func (m *ConnManager) SetConn(conn *websocket.Conn) {
 	go connListener(conn, m.gameRecvCh, m.gameSendCh)
 }
 
-func connListener(conn *websocket.Conn, gameRecvCh chan model.GameMsgRecv, gameSendCh chan model.GameMsgSend) {
+func connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) {
 	for {
-		commonMsg := model.CommonMsg{}
+		commonMsg := message.CommonMsg{}
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("failed to read message")
@@ -42,9 +42,9 @@ func connListener(conn *websocket.Conn, gameRecvCh chan model.GameMsgRecv, gameS
 
 		// estimate type of message
 		switch commonMsg.MsgType {
-		case model.GameMsgType:
+		case message.GameMsgType:
 			log.Println("got a game msg")
-			var gameMsg model.GameMsgRecv
+			var gameMsg message.GameMsgRecv
 			err = json.Unmarshal(msg, &gameMsg)
 			if err != nil {
 				panic("fail to decode game msg")
