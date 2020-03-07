@@ -1,8 +1,9 @@
 package model
 
 type PlayerTile struct {
-	HandTiles  []Tile
-	ShownTiles []ShownTile
+	HandTiles  []Tile      `json:"hand_tiles"`
+	ShownTiles []ShownTile `json:"shown_tiles"`
+	DropTiles  []Tile      `json:"drop_tiles"`
 }
 
 func (t *PlayerTile) SetHandTiles(tiles []Tile) {

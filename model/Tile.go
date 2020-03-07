@@ -38,6 +38,15 @@ func (t *Tile) IsSuit() bool {
 	return t.Suit == Character || t.Suit == Bamboo || t.Suit == Dot
 }
 
+func GetTilePos(tiles []Tile, tar Tile) int {
+	for i, v := range tiles {
+		if v.Equals(tar) {
+			return i
+		}
+	}
+	return -1
+}
+
 func SortTiles(tiles []Tile) {
 	sort.Slice(tiles, func(i, j int) bool {
 		iValue := int(tiles[i].Suit)*10 + tiles[i].Number
@@ -58,6 +67,16 @@ func GetPairPos(tiles []Tile) []int {
 		}
 	}
 	return pos
+}
+
+func RemoveTile(tiles []Tile, tar Tile, count int) []Tile {
+	pos := GetTilePos(tiles, tar)
+	newTiles := make([]Tile, 0)
+	newTiles = append(newTiles, tiles[:pos]...)
+	if pos+count < len(tiles) {
+		newTiles = append(newTiles, tiles[pos+count:]...)
+	}
+	return newTiles
 }
 
 func RemovePair(tiles []Tile, pos int) []Tile {
