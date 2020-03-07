@@ -58,6 +58,8 @@ func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendC
 			m.handleChow(msg)
 		case message.Pong:
 			m.handlePong(msg)
+		case message.ExposedKong:
+		case message.ConcealedKong:
 		case message.Win:
 			m.handleWin(msg)
 		case message.Cancel:
@@ -75,7 +77,6 @@ func (m *MahjongManager) handleStart(msg message.GameMsgRecv) {
 	var msgSend message.GameMsgSend
 	msgSend.MsgType = message.GameMsgType
 	msgSend.AvailableActions = availableActions
-	msgSend.CurrentTile = m.playerTile[0].HandTiles
 	msgSend.PlayerTile = m.playerTile
 	msgSend.WallCount = m.wall.Length()
 	m.gameSendCh <- msgSend
@@ -89,43 +90,157 @@ func (m *MahjongManager) Draw(tableOrder int) {
 	var msg message.GameMsgSend
 	msg.MsgType = message.GameMsgType
 	msg.AvailableActions = m.getAvailableActions(player.HandTiles, player.ShownTiles, newTile)
-	msg.CurrentTile = currentTile
 }
 
 func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
 	currentOrder := msg.TableOrder
+	m.lastTableOrder = msg.TableOrder
+	//从手牌中删除
+	hand := m.playerTile[msg.TableOrder].HandTiles
+	m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(hand, msg.Tile, 1)
 	// 检查是否有人胡牌
 	for i := 1; i <= 3; i++ {
 		hand := m.playerTile[(currentOrder+i)%4].HandTiles
 		shown := m.playerTile[(currentOrder+i)%4].ShownTiles
 		if m.rules.CanWin(hand, shown, msg.Tile) {
-			//TODO:send msg to this potential winner
+			//send msg to this potential winner
+			msgSend := message.GameMsgSend{
+				MsgType:          -1,
+				TableOrder:       -1,
+				CurrentTurn:      (currentOrder + i) % 4,
+				CurrentTile:      msg.Tile,
+				AvailableActions: []int{message.Win},
+				LastTurn:         msg.TableOrder,
+				LastAction:       message.Discard,
+				PlayerTile:       m.playerTile,
+				WallCount:        m.wall.Length(),
+			}
+			m.gameSendCh <- msgSend
 			return
 		}
 	}
 	// 检查是否有人碰、杠
 	for i := 1; i <= 3; i++ {
 		hand := m.playerTile[(currentOrder+i)%4].HandTiles
-		shown := m.playerTile[(currentOrder+i)%4].ShownTiles
-		if m.rules.CanPong(hand, msg.Tile) {
-			shown = shown
+		if m.rules.CanExposedKong(hand, msg.Tile) {
+			msgSend := message.GameMsgSend{
+				MsgType:          message.GameMsgType,
+				TableOrder:       -1,
+				CurrentTurn:      (currentOrder + i) % 4,
+				CurrentTile:      msg.Tile,
+				AvailableActions: []int{message.Pong, message.ExposedKong},
+				LastTurn:         msg.TableOrder,
+				LastAction:       message.Discard,
+				PlayerTile:       m.playerTile,
+				WallCount:        m.wall.Length(),
+			}
+			m.gameSendCh <- msgSend
+			return
 		}
-		return
+		if m.rules.CanPong(hand, msg.Tile) {
+			msgSend := message.GameMsgSend{
+				MsgType:          message.GameMsgType,
+				TableOrder:       -1,
+				CurrentTurn:      (currentOrder + i) % 4,
+				CurrentTile:      msg.Tile,
+				AvailableActions: []int{message.Pong},
+				LastTurn:         msg.TableOrder,
+				LastAction:       message.Discard,
+				PlayerTile:       m.playerTile,
+				WallCount:        m.wall.Length(),
+			}
+			m.gameSendCh <- msgSend
+			return
+		}
 	}
 	// 检查是否有人吃
-	hand := m.playerTile[(currentOrder+1)%4].HandTiles
-	if m.rules.CanChow(hand, msg.Tile) {
-
+	nextHand := m.playerTile[(currentOrder+1)%4].HandTiles
+	if m.rules.CanChow(nextHand, msg.Tile) {
+		msgSend := message.GameMsgSend{
+			MsgType:          message.GameMsgType,
+			TableOrder:       -1,
+			CurrentTurn:      (currentOrder + 1) % 4,
+			CurrentTile:      msg.Tile,
+			AvailableActions: []int{message.Chow},
+			LastTurn:         msg.TableOrder,
+			LastAction:       message.Discard,
+			PlayerTile:       m.playerTile,
+			WallCount:        m.wall.Length(),
+		}
+		m.gameSendCh <- msgSend
+		return
 	}
 	// 都没有
+	// 从该玩家手牌中删除，加入打牌区
 	handTile := m.playerTile[msg.TableOrder].HandTiles
 	dropTile := m.playerTile[msg.TableOrder].DropTiles
 	m.playerTile[msg.TableOrder].DropTiles = append(dropTile, msg.Tile)
 	m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(handTile, msg.Tile, 1)
+	//为下一位玩家发牌
+	m.lastTableOrder = msg.TableOrder
+	m.currentTableOrder = (msg.TableOrder+1)%4
+	newTile:=m.wall.FrontDraw()
+	m.playerTile[m.currentTableOrder].HandTiles = append(m.playerTile[m.currentTableOrder].HandTiles, newTile)
+	msgSend:=message.GameMsgSend{
+		MsgType:          message.GameMsgType,
+		TableOrder:       -1,
+		CurrentTurn:      (msg.TableOrder + 1) % 4,
+		CurrentTile:      model.Tile{},
+		AvailableActions: []int{message.Discard},
+		LastTurn:         msg.TableOrder,
+		LastAction:       message.Discard,
+		PlayerTile:       m.playerTile,
+		WallCount:        m.wall.Length(),
+	}
+	m.gameSendCh<-msgSend
 }
 
 func (m *MahjongManager) handleChow(msg message.GameMsgRecv) {
-
+	//更新手牌和明牌
+	shown := m.playerTile[msg.TableOrder].ShownTiles
+	// 删除手牌
+	switch msg.ChowType {
+	case message.LeftChow:
+		mid := msg.Tile.GetRightTile()
+		right := (*mid).GetRightTile()
+		m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(m.playerTile[msg.TableOrder].HandTiles, *mid, 1)
+		m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(m.playerTile[msg.TableOrder].HandTiles, *right, 1)
+		m.playerTile[msg.TableOrder].ShownTiles = append(shown, model.ShownTile{
+			ShownType: message.Chow,
+			Tiles:     []model.Tile{msg.Tile, *mid, *right},
+		})
+	case message.MidChow:
+		left := msg.Tile.GetLeftTile()
+		right := msg.Tile.GetRightTile()
+		m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(m.playerTile[msg.TableOrder].HandTiles, *left, 1)
+		m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(m.playerTile[msg.TableOrder].HandTiles, *right, 1)
+		m.playerTile[msg.TableOrder].ShownTiles = append(shown, model.ShownTile{
+			ShownType: message.Chow,
+			Tiles:     []model.Tile{*left, msg.Tile, *right},
+		})
+	case message.RightChow:
+		mid := msg.Tile.GetLeftTile()
+		left := (*mid).GetLeftTile()
+		m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(m.playerTile[msg.TableOrder].HandTiles, *mid, 1)
+		m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(m.playerTile[msg.TableOrder].HandTiles, *left, 1)
+		m.playerTile[msg.TableOrder].ShownTiles = append(shown, model.ShownTile{
+			ShownType: message.Chow,
+			Tiles:     []model.Tile{*left, *mid, msg.Tile},
+		})
+	}
+	//发送消息
+	msgSend := message.GameMsgSend{
+		MsgType:     message.GameMsgType,
+		TableOrder:  -1,
+		CurrentTurn: msg.TableOrder,
+		//CurrentTile:      nil,
+		AvailableActions: []int{message.Discard},
+		LastTurn:         msg.TableOrder,
+		LastAction:       message.Chow,
+		PlayerTile:       m.playerTile,
+		WallCount:        m.wall.Length(),
+	}
+	m.gameSendCh <- msgSend
 }
 
 // handlePong收到碰的消息，通知每个玩家，并等待该玩家发出打牌的消息
@@ -142,13 +257,103 @@ func (m *MahjongManager) handlePong(msg message.GameMsgRecv) {
 	m.playerTile[msg.TableOrder].HandTiles = newHand
 	// 发送消息
 	msgSend := message.GameMsgSend{
-		MsgType:          message.GameMsgType,
-		TableOrder:       -1,
-		CurrentTurn:      m.currentTableOrder,
-		CurrentTile:      nil, //其他玩家不会管， 当前玩家会忽略
+		MsgType:     message.GameMsgType,
+		TableOrder:  -1,
+		CurrentTurn: m.currentTableOrder,
+		//CurrentTile:      nil, //其他玩家不会管， 当前玩家会忽略
 		AvailableActions: []int{message.Discard},
 		LastTurn:         m.currentTableOrder,
 		LastAction:       message.Pong,
+		PlayerTile:       m.playerTile,
+		WallCount:        m.wall.Length(),
+	}
+	m.gameSendCh <- msgSend
+}
+
+func (m *MahjongManager) handleExposedKong(msg message.GameMsgRecv) {
+	// 更新手牌和明牌
+	hand := m.playerTile[msg.TableOrder].HandTiles
+	shown := m.playerTile[msg.TableOrder].ShownTiles
+	newHand := model.RemoveTile(hand, msg.Tile, 3)
+	newShown := append(shown, model.ShownTile{
+		ShownType: message.ExposedKong,
+		Tiles:     []model.Tile{msg.Tile, msg.Tile, msg.Tile, msg.Tile},
+	})
+	m.playerTile[msg.TableOrder].HandTiles = newHand
+	m.playerTile[msg.TableOrder].ShownTiles = newShown
+	//为玩家发牌
+	newTile := m.wall.BackDraw()
+	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
+	//发送消息
+	msgSend := message.GameMsgSend{
+		MsgType:          message.GameMsgType,
+		TableOrder:       -1,
+		CurrentTurn:      msg.TableOrder,
+		CurrentTile:      newTile,
+		AvailableActions: []int{message.Discard},
+		LastTurn:         msg.TableOrder,
+		LastAction:       message.ExposedKong,
+		PlayerTile:       m.playerTile,
+		WallCount:        m.wall.Length(),
+	}
+	m.gameSendCh <- msgSend
+}
+
+func (m *MahjongManager) handleConcealedKong(msg message.GameMsgRecv) {
+	// 更新手牌和明牌
+	hand := m.playerTile[msg.TableOrder].HandTiles
+	shown := m.playerTile[msg.TableOrder].ShownTiles
+	newHand := model.RemoveTile(hand, msg.Tile, 3)
+	newShown := append(shown, model.ShownTile{
+		ShownType: message.ConcealedKong,
+		Tiles:     []model.Tile{msg.Tile, msg.Tile, msg.Tile, msg.Tile},
+	})
+	m.playerTile[msg.TableOrder].HandTiles = newHand
+	m.playerTile[msg.TableOrder].ShownTiles = newShown
+	//为玩家发牌
+	newTile := m.wall.BackDraw()
+	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
+	//发送消息
+	msgSend := message.GameMsgSend{
+		MsgType:          message.GameMsgType,
+		TableOrder:       -1,
+		CurrentTurn:      msg.TableOrder,
+		CurrentTile:      newTile,
+		AvailableActions: []int{message.Discard},
+		LastTurn:         msg.TableOrder,
+		LastAction:       message.ConcealedKong,
+		PlayerTile:       m.playerTile,
+		WallCount:        m.wall.Length(),
+	}
+	m.gameSendCh <- msgSend
+}
+
+func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
+	//更新手牌和明牌
+	hand := m.playerTile[msg.TableOrder].HandTiles
+	shown := m.playerTile[msg.TableOrder].ShownTiles
+
+	m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(hand, msg.Tile, 1)
+	for _, v := range shown {
+		if v.ShownType == message.Pong && v.Tiles[0].Equals(msg.Tile) {
+			v.ShownType = message.AddedKong
+			v.Tiles = append(v.Tiles, msg.Tile)
+			break
+		}
+	}
+
+	//发牌
+	newTile := m.wall.BackDraw()
+	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
+	//发送消息
+	msgSend := message.GameMsgSend{
+		MsgType:          message.GameMsgType,
+		TableOrder:       -1,
+		CurrentTurn:      msg.TableOrder,
+		CurrentTile:      newTile,
+		AvailableActions: []int{message.Discard},
+		LastTurn:         msg.TableOrder,
+		LastAction:       message.AddedKong,
 		PlayerTile:       m.playerTile,
 		WallCount:        m.wall.Length(),
 	}
@@ -163,7 +368,7 @@ func (m *MahjongManager) handleCancel(msg message.GameMsgRecv) {
 	switch m.lastAction {
 	case message.Win:
 		//TODO: 检查碰、杠
-	case message.Kong:
+	case message.ExposedKong:
 		fallthrough
 	case message.Pong:
 		//TODO: 检查吃
@@ -181,7 +386,7 @@ func (m *MahjongManager) getAvailableActions(hand []model.Tile, shown []model.Sh
 		availableActions = append(availableActions, message.Pong)
 	}
 	if m.rules.CanExposedKong(hand, newTile) {
-		availableActions = append(availableActions, message.Kong)
+		availableActions = append(availableActions, message.ExposedKong)
 	}
 	if m.rules.CanWin(hand, shown, newTile) {
 		availableActions = append(availableActions, message.Win)

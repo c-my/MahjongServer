@@ -8,14 +8,16 @@ import "github.com/c-my/MahjongServer/model"
 
 // Player actions
 const (
-	Start   int = iota
-	Deal        //发牌
-	Chow        //吃
-	Pong        //碰
-	Kong        //杠
-	Win         //胡
-	Cancel      //取消操作
-	Discard     //打牌
+	Start         int = iota
+	Deal              //发牌
+	Chow              //吃
+	Pong              //碰
+	ExposedKong       //杠
+	ConcealedKong     //暗杠
+	AddedKong         //补杠
+	Win               //胡
+	Cancel            //取消操作
+	Discard           //打牌
 )
 
 // 吃牌的类型
@@ -40,7 +42,7 @@ type GameMsgSend struct {
 
 	TableOrder       int          `json:"table_order"`       // 发送给谁，以后可能会用到
 	CurrentTurn      int          `json:"current_turn"`      // 当前轮到的玩家
-	CurrentTile      []model.Tile `json:"current_tile"`      // 玩家收到的牌
+	CurrentTile      model.Tile `json:"current_tile"`      // 玩家收到的牌
 	AvailableActions []int        `json:"available_actions"` //玩家可以进行的动作，打牌、吃、碰等
 	LastTurn         int          `json:"last_turn"`         // 上一个玩家
 	LastAction       int          `json:"last_action"`       // 上一个玩家的动作
