@@ -119,6 +119,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
 	m.currentTableOrder = (msg.TableOrder + 1) % 4
 	newTile := m.wall.FrontDraw()
 	m.playerTile[m.currentTableOrder].HandTiles = append(m.playerTile[m.currentTableOrder].HandTiles, newTile)
+	model.SortTiles(m.playerTile[m.currentTableOrder].HandTiles)
 	msgSend := message.GameMsgSend{
 		MsgType:          message.GameMsgType,
 		TableOrder:       -1,
@@ -213,6 +214,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
 	//m.currentTableOrder = (msg.TableOrder + 1) % 4
 	//newTile := m.wall.FrontDraw()
 	//m.playerTile[m.currentTableOrder].HandTiles = append(m.playerTile[m.currentTableOrder].HandTiles, newTile)
+	//model.SortTiles(m.playerTile[m.currentTableOrder].HandTiles)
 	//msgSend := message.GameMsgSend{
 	//	MsgType:          message.GameMsgType,
 	//	TableOrder:       -1,
