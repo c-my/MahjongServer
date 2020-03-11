@@ -16,16 +16,30 @@ type ConnManager struct {
 }
 
 func NewConnManager(playersCount int, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) *ConnManager {
-	return &ConnManager{playersCount: playersCount,
+	connManager := ConnManager{playersCount: playersCount,
 		conns:      make([]websocket.Conn, 0),
 		gameRecvCh: gameRecvCh,
 		gameSendCh: gameSendCh,
 	}
+	go connManager.Broadcaster()
+	return &connManager
 }
 
 func (m *ConnManager) SetConn(conn *websocket.Conn) {
 	m.conns = append(m.conns, *conn)
 	go connListener(conn, m.gameRecvCh, m.gameSendCh)
+}
+
+func (m *ConnManager) Broadcaster() {
+	for {
+		select {
+		case msg := <-m.gameSendCh:
+			log.Println("broadcast game message")
+			for _, conn := range m.conns {
+				conn.WriteJSON(msg)
+			}
+		}
+	}
 }
 
 func connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) {
@@ -50,12 +64,6 @@ func connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gam
 				panic("fail to decode game msg")
 			}
 			gameRecvCh <- gameMsg
-			gameMsgSend := <-gameSendCh
-			log.Println("send game msg to client")
-			err = conn.WriteJSON(gameMsgSend)
-			if err != nil {
-				log.Println("failed to send game msg")
-			}
 		}
 	}
 }
