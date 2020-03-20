@@ -59,18 +59,23 @@ func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendC
 		case message.Pong:
 			m.handlePong(msg)
 		case message.ExposedKong:
+			m.handleExposedKong(msg)
 		case message.ConcealedKong:
+			m.handleConcealedKong(msg)
+		case message.AddedKong:
+			m.handleAddedKong(msg)
 		case message.Win:
 			m.handleWin(msg)
 		case message.Cancel:
-
+			m.handleCancel(msg)
 		}
 		// TODO:main logic here
 	}
 }
 
 func (m *MahjongManager) handleStart(msg message.GameMsgRecv) {
-	m.dealTile()
+	//m.dealTile()
+	m.dealTileTest()
 	availableActions := make([]int, 0)
 	availableActions = append(availableActions, message.Deal)
 	newTile := m.wall.FrontDraw()
@@ -118,7 +123,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
 		if m.rules.CanWin(hand, shown, msg.Tile) {
 			//send msg to this potential winner
 			msgSend := message.GameMsgSend{
-				MsgType:          -1,
+				MsgType:          message.GameMsgType,
 				TableOrder:       -1,
 				CurrentTurn:      (currentOrder + i) % 4,
 				CurrentTile:      msg.Tile,
@@ -302,6 +307,7 @@ func (m *MahjongManager) handleExposedKong(msg message.GameMsgRecv) {
 	//为玩家发牌
 	newTile := m.wall.BackDraw()
 	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
+	model.SortTiles(m.playerTile[msg.TableOrder].HandTiles)
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          message.GameMsgType,
@@ -331,6 +337,7 @@ func (m *MahjongManager) handleConcealedKong(msg message.GameMsgRecv) {
 	//为玩家发牌
 	newTile := m.wall.BackDraw()
 	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
+	model.SortTiles(m.playerTile[msg.TableOrder].HandTiles)
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          message.GameMsgType,
@@ -363,6 +370,7 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 	//发牌
 	newTile := m.wall.BackDraw()
 	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
+	model.SortTiles(m.playerTile[msg.TableOrder].HandTiles)
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          message.GameMsgType,
@@ -435,6 +443,32 @@ func (m *MahjongManager) dealTile() {
 	m.playerTile[1].HandTiles = append(m.playerTile[1].HandTiles, m.wall.FrontDraw())
 	m.playerTile[2].HandTiles = append(m.playerTile[2].HandTiles, m.wall.FrontDraw())
 	m.playerTile[3].HandTiles = append(m.playerTile[3].HandTiles, m.wall.FrontDraw())
+
+	for i := 0; i <= 3; i++ {
+		m.playerTile[i].SortHand()
+	}
+}
+
+func (m *MahjongManager) dealTileTest() {
+
+	for i:=1;i<=6;i++{
+		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Character,Number:i})
+		m.playerTile[1].HandTiles = append(m.playerTile[1].HandTiles, model.Tile{Suit:model.Character,Number:i},model.Tile{Suit:model.Character,Number:i})
+	}
+	for i:=1;i<=4;i++{
+		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Bamboo,Number:i})
+		m.playerTile[2].HandTiles = append(m.playerTile[2].HandTiles, model.Tile{Suit:model.Bamboo,Number:i},model.Tile{Suit:model.Bamboo,Number:i},model.Tile{Suit:model.Bamboo,Number:i})
+	}
+	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Dragon,Number:1})
+	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Dragon,Number:1})
+	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Character,Number:1})
+	m.playerTile[1].HandTiles = append(m.playerTile[1].HandTiles, model.Tile{Suit:model.Dragon,Number:1})
+	m.playerTile[2].HandTiles = append(m.playerTile[2].HandTiles, model.Tile{Suit:model.Dragon,Number:1})
+
+	for i:=0;i<13;i++{
+		m.playerTile[3].HandTiles = append(m.playerTile[3].HandTiles, m.wall.FrontDraw())
+	}
+
 
 	for i := 0; i <= 3; i++ {
 		m.playerTile[i].SortHand()
