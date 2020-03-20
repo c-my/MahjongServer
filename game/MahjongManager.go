@@ -100,13 +100,13 @@ func (m *MahjongManager) handleStart(msg message.GameMsgRecv) {
 }
 
 func (m *MahjongManager) Draw(tableOrder int) {
-	player := m.playerTile[tableOrder]
+	//player := m.playerTile[tableOrder]
 	newTile := m.wall.FrontDraw()
 	currentTile := make([]model.Tile, 0)
 	currentTile = append(currentTile, newTile)
 	var msg message.GameMsgSend
 	msg.MsgType = message.GameMsgType
-	msg.AvailableActions = m.getAvailableActions(player.HandTiles, player.ShownTiles, newTile)
+	//msg.AvailableActions = m.getAvailableActions(player.HandTiles, player.ShownTiles, newTile)
 }
 
 func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
@@ -173,7 +173,8 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
 	}
 	// 检查是否有人吃
 	nextHand := m.playerTile[(currentOrder+1)%4].HandTiles
-	if m.rules.CanChow(nextHand, msg.Tile) {
+	canChow, chowTypes := m.rules.CanChow(nextHand, msg.Tile)
+	if canChow {
 		msgSend := message.GameMsgSend{
 			MsgType:          message.GameMsgType,
 			TableOrder:       -1,
@@ -182,6 +183,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
 			AvailableActions: []int{message.Chow},
 			LastTurn:         msg.TableOrder,
 			LastAction:       message.Discard,
+			ChowTypes:        chowTypes,
 			PlayerTile:       m.playerTile,
 			WallCount:        m.wall.Length(),
 		}
@@ -403,22 +405,22 @@ func (m *MahjongManager) handleCancel(msg message.GameMsgRecv) {
 	}
 }
 
-func (m *MahjongManager) getAvailableActions(hand []model.Tile, shown []model.ShownTile, newTile model.Tile) []int {
-	availableActions := make([]int, 0)
-	if m.rules.CanChow(hand, newTile) {
-		availableActions = append(availableActions, message.Chow)
-	}
-	if m.rules.CanPong(hand, newTile) {
-		availableActions = append(availableActions, message.Pong)
-	}
-	if m.rules.CanExposedKong(hand, newTile) {
-		availableActions = append(availableActions, message.ExposedKong)
-	}
-	if m.rules.CanWin(hand, shown, newTile) {
-		availableActions = append(availableActions, message.Win)
-	}
-	return availableActions
-}
+//func (m *MahjongManager) getAvailableActions(hand []model.Tile, shown []model.ShownTile, newTile model.Tile) []int {
+//	availableActions := make([]int, 0)
+//	if m.rules.CanChow(hand, newTile) {
+//		availableActions = append(availableActions, message.Chow)
+//	}
+//	if m.rules.CanPong(hand, newTile) {
+//		availableActions = append(availableActions, message.Pong)
+//	}
+//	if m.rules.CanExposedKong(hand, newTile) {
+//		availableActions = append(availableActions, message.ExposedKong)
+//	}
+//	if m.rules.CanWin(hand, shown, newTile) {
+//		availableActions = append(availableActions, message.Win)
+//	}
+//	return availableActions
+//}
 
 func (m *MahjongManager) dealTile() {
 	for i := 0; i < 3; i++ {
@@ -451,24 +453,23 @@ func (m *MahjongManager) dealTile() {
 
 func (m *MahjongManager) dealTileTest() {
 
-	for i:=1;i<=6;i++{
-		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Character,Number:i})
-		m.playerTile[1].HandTiles = append(m.playerTile[1].HandTiles, model.Tile{Suit:model.Character,Number:i},model.Tile{Suit:model.Character,Number:i})
+	for i := 1; i <= 6; i++ {
+		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit: model.Character, Number: i})
+		m.playerTile[1].HandTiles = append(m.playerTile[1].HandTiles, model.Tile{Suit: model.Character, Number: i}, model.Tile{Suit: model.Character, Number: i})
 	}
-	for i:=1;i<=4;i++{
-		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Bamboo,Number:i})
-		m.playerTile[2].HandTiles = append(m.playerTile[2].HandTiles, model.Tile{Suit:model.Bamboo,Number:i},model.Tile{Suit:model.Bamboo,Number:i},model.Tile{Suit:model.Bamboo,Number:i})
+	for i := 1; i <= 4; i++ {
+		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit: model.Bamboo, Number: i})
+		m.playerTile[2].HandTiles = append(m.playerTile[2].HandTiles, model.Tile{Suit: model.Bamboo, Number: i}, model.Tile{Suit: model.Bamboo, Number: i}, model.Tile{Suit: model.Bamboo, Number: i})
 	}
-	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Dragon,Number:1})
-	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Dragon,Number:1})
-	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit:model.Character,Number:1})
-	m.playerTile[1].HandTiles = append(m.playerTile[1].HandTiles, model.Tile{Suit:model.Dragon,Number:1})
-	m.playerTile[2].HandTiles = append(m.playerTile[2].HandTiles, model.Tile{Suit:model.Dragon,Number:1})
+	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit: model.Dragon, Number: 1})
+	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit: model.Dragon, Number: 1})
+	m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit: model.Character, Number: 1})
+	m.playerTile[1].HandTiles = append(m.playerTile[1].HandTiles, model.Tile{Suit: model.Dragon, Number: 1})
+	m.playerTile[2].HandTiles = append(m.playerTile[2].HandTiles, model.Tile{Suit: model.Dragon, Number: 1})
 
-	for i:=0;i<13;i++{
+	for i := 0; i < 13; i++ {
 		m.playerTile[3].HandTiles = append(m.playerTile[3].HandTiles, m.wall.FrontDraw())
 	}
-
 
 	for i := 0; i <= 3; i++ {
 		m.playerTile[i].SortHand()

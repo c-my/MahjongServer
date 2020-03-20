@@ -4,7 +4,7 @@ import "github.com/c-my/MahjongServer/model"
 
 type MahjongRule interface {
 	GenerateTiles() []model.Tile
-	CanChow(hand []model.Tile, newTile model.Tile) bool
+	CanChow(hand []model.Tile, newTile model.Tile) (bool, []int)
 	CanPong(hand []model.Tile, newTile model.Tile) bool
 	CanExposedKong(hand []model.Tile, newTile model.Tile) bool
 	CanConcealedKong(hand []model.Tile, newTile model.Tile) bool

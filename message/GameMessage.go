@@ -47,6 +47,7 @@ type GameMsgSend struct {
 	AvailableActions []int      `json:"available_actions"` //玩家可以进行的动作，打牌、吃、碰等
 	LastTurn         int        `json:"last_turn"`         // 上一个玩家
 	LastAction       int        `json:"last_action"`       // 上一个玩家的动作
+	ChowTypes        []int      `json:"chow_types"`        //可以吃的类型
 
 	PlayerTile []model.PlayerTile `json:"player_tile"` //全局麻将牌牌信息
 	WallCount  int                `json:"wall_count"`  // 剩余牌墙数量

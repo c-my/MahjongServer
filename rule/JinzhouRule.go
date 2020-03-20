@@ -1,6 +1,7 @@
 package rule
 
 import (
+	"github.com/c-my/MahjongServer/message"
 	"github.com/c-my/MahjongServer/model"
 )
 
@@ -25,23 +26,25 @@ func (r *JinzhouRule) GenerateTiles() []model.Tile {
 	return tiles
 }
 
-func (r *JinzhouRule) CanChow(tiles []model.Tile, newTile model.Tile) bool {
+func (r *JinzhouRule) CanChow(tiles []model.Tile, newTile model.Tile) (bool, []int) {
+	var canChow = false
+	var chowTypes []int
 	if !newTile.IsSuit() {
-		return false
+		return false, append(chowTypes, message.NAC)
 	}
-	left := newTile.GetLeftTile()
-	right := newTile.GetRightTile()
-	if left == nil {
-		rright := right.GetRightTile()
-		return model.GetTileCount(tiles, *right) != 0 && model.GetTileCount(tiles, *rright) != 0
+	if r.canLeftChow(tiles, newTile){
+		canChow = true
+		chowTypes = append(chowTypes, message.LeftChow)
 	}
-	if right == nil {
-		lleft := left.GetLeftTile()
-		return model.GetTileCount(tiles, *left) != 0 && model.GetTileCount(tiles, *lleft) != 0
-
-	} else {
-		return model.GetTileCount(tiles, *left) != 0 && model.GetTileCount(tiles, *right) != 0
+	if r.canMidChow(tiles, newTile){
+		canChow = true
+		chowTypes = append(chowTypes, message.MidChow)
 	}
+	if(r.canRightChow(tiles, newTile)){
+		canChow = true
+		chowTypes = append(chowTypes, message.RightChow)
+	}
+	return canChow, chowTypes
 }
 
 func (r *JinzhouRule) CanPong(tiles []model.Tile, newTile model.Tile) bool {
@@ -152,4 +155,31 @@ func (r *JinzhouRule) CheckDoor(hand []model.Tile, shown []model.ShownTile) bool
 		}
 	}
 	return hasCharacter && hasBamboo && hasDot
+}
+
+func (r *JinzhouRule) canLeftChow(tiles []model.Tile, newTile model.Tile) bool {
+	right := newTile.GetRightTile()
+	rright := right.GetRightTile()
+	if right == nil || rright == nil {
+		return false
+	}
+	return model.GetTileCount(tiles, *right) != 0 && model.GetTileCount(tiles, *rright) != 0
+}
+
+func (r *JinzhouRule) canMidChow(tiles []model.Tile, newTile model.Tile) bool {
+	left := newTile.GetLeftTile()
+	right := newTile.GetRightTile()
+	if left == nil || right == nil {
+		return false
+	}
+	return model.GetTileCount(tiles, *left) != 0 && model.GetTileCount(tiles, *right) != 0
+}
+
+func (r *JinzhouRule) canRightChow(tiles []model.Tile, newTile model.Tile) bool {
+	left := newTile.GetLeftTile()
+	lleft := left.GetLeftTile()
+	if left == nil || lleft == nil {
+		return false
+	}
+	return model.GetTileCount(tiles, *left) != 0 && model.GetTileCount(tiles, *lleft) != 0
 }

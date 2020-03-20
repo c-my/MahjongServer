@@ -197,6 +197,9 @@ func GetTileCount(tiles []Tile, target Tile) int {
 }
 
 func (t *Tile) GetLeftTile() *Tile {
+	if t == nil {
+		return nil
+	}
 	if t.Suit == Character || t.Suit == Bamboo || t.Suit == Dot {
 		if t.Number == 1 {
 			return nil
@@ -210,6 +213,9 @@ func (t *Tile) GetLeftTile() *Tile {
 }
 
 func (t *Tile) GetRightTile() *Tile {
+	if t == nil {
+		return nil
+	}
 	if t.Suit == Character || t.Suit == Bamboo || t.Suit == Dot {
 		if t.Number == 9 {
 			return nil
