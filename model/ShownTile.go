@@ -1,11 +1,7 @@
 package model
 
-const (
-	Chow          = iota //吃
-	Pong                 //碰
-	ExposedKong          //明杠
-	ConcealedKong        //暗杠
-	AddedKong            //补杠
+import (
+	"github.com/c-my/MahjongServer/config"
 )
 
 type ShownTile struct {
@@ -16,7 +12,7 @@ type ShownTile struct {
 func GetChowCount(shownTiles []ShownTile) int {
 	count := 0
 	for _, v := range shownTiles {
-		if v.ShownType == Chow {
+		if v.ShownType == config.Chow {
 			count++
 		}
 	}
@@ -25,7 +21,7 @@ func GetChowCount(shownTiles []ShownTile) int {
 func GetPongCount(shownTiles []ShownTile) int {
 	count := 0
 	for _, v := range shownTiles {
-		if v.ShownType == Pong {
+		if v.ShownType == config.Pong {
 			count++
 		}
 	}
@@ -35,7 +31,7 @@ func GetPongCount(shownTiles []ShownTile) int {
 func GetExposedKongCount(shownTiles []ShownTile) int {
 	count := 0
 	for _, v := range shownTiles {
-		if v.ShownType == ExposedKong {
+		if v.ShownType == config.ExposedKong {
 			count++
 		}
 	}
@@ -45,7 +41,7 @@ func GetExposedKongCount(shownTiles []ShownTile) int {
 func GetConcealedKongCount(shownTiles []ShownTile) int {
 	count := 0
 	for _, v := range shownTiles {
-		if v.ShownType == ConcealedKong {
+		if v.ShownType == config.ConcealedKong {
 			count++
 		}
 	}
@@ -55,7 +51,7 @@ func GetConcealedKongCount(shownTiles []ShownTile) int {
 func GetAddedKongCount(shownTiles []ShownTile) int {
 	count := 0
 	for _, v := range shownTiles {
-		if v.ShownType == AddedKong {
+		if v.ShownType == config.AddedKong {
 			count++
 		}
 	}

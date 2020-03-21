@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/c-my/MahjongServer/config"
 	"github.com/c-my/MahjongServer/message"
 	"github.com/gorilla/websocket"
 	"log"
@@ -56,7 +57,7 @@ func connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gam
 
 		// estimate type of message
 		switch commonMsg.MsgType {
-		case message.GameMsgType:
+		case config.GameMsgType:
 			log.Println("got a game msg")
 			var gameMsg message.GameMsgRecv
 			err = json.Unmarshal(msg, &gameMsg)

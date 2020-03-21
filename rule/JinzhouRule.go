@@ -1,7 +1,7 @@
 package rule
 
 import (
-	"github.com/c-my/MahjongServer/message"
+	"github.com/c-my/MahjongServer/config"
 	"github.com/c-my/MahjongServer/model"
 )
 
@@ -30,19 +30,19 @@ func (r *JinzhouRule) CanChow(tiles []model.Tile, newTile model.Tile) (bool, []i
 	var canChow = false
 	var chowTypes []int
 	if !newTile.IsSuit() {
-		return false, append(chowTypes, message.NAC)
+		return false, append(chowTypes, config.NAC)
 	}
 	if r.canLeftChow(tiles, newTile){
 		canChow = true
-		chowTypes = append(chowTypes, message.LeftChow)
+		chowTypes = append(chowTypes, config.LeftChow)
 	}
 	if r.canMidChow(tiles, newTile){
 		canChow = true
-		chowTypes = append(chowTypes, message.MidChow)
+		chowTypes = append(chowTypes, config.MidChow)
 	}
 	if(r.canRightChow(tiles, newTile)){
 		canChow = true
-		chowTypes = append(chowTypes, message.RightChow)
+		chowTypes = append(chowTypes, config.RightChow)
 	}
 	return canChow, chowTypes
 }
@@ -61,7 +61,7 @@ func (r *JinzhouRule) CanConcealedKong(tiles []model.Tile, newTile model.Tile) b
 
 func (r *JinzhouRule) CanAddedKong(shown []model.ShownTile, newTIle model.Tile) bool {
 	for _, v := range shown {
-		if v.ShownType == model.Pong && v.Tiles[0].Equals(newTIle) {
+		if v.ShownType == config.Pong && v.Tiles[0].Equals(newTIle) {
 			return true
 		}
 	}
