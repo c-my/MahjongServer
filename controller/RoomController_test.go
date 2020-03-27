@@ -31,10 +31,11 @@ func TestRoomCreateHandler(t *testing.T) {
 }
 
 func TestRoomJoinHandler(t *testing.T) {
-	container.GetHall().CreateRoom(003, "test", "pp")
+	roomID := container.GetHall().CreateRoom(003, "test", "pp")
 	body, _ := json.Marshal(joinRoomMsg{
-		UserID: 004,
-		RoomID: 0,
+		UserID:   004,
+		RoomID:   roomID,
+		Password: "pp",
 	})
 	req, err := http.NewRequest("PUT", "/room", bytes.NewReader(body))
 	if err != nil {
@@ -52,7 +53,23 @@ func TestRoomJoinHandler(t *testing.T) {
 
 	body, _ = json.Marshal(joinRoomMsg{
 		UserID: 005,
-		RoomID: 0,
+		RoomID: roomID,
+	})
+	req, err = http.NewRequest("PUT", "/room", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr = httptest.NewRecorder()
+	handler = http.HandlerFunc(RoomJoinHandler)
+	handler.ServeHTTP(rr, req)
+	err = json.Unmarshal([]byte(rr.Body.String()), &msg)
+	if msg.Success == true {
+		t.Errorf("join room with wrong password")
+	}
+	body, _ = json.Marshal(joinRoomMsg{
+		UserID:   005,
+		RoomID:   roomID,
+		Password: "pp",
 	})
 	req, err = http.NewRequest("PUT", "/room", bytes.NewReader(body))
 	if err != nil {
@@ -66,8 +83,9 @@ func TestRoomJoinHandler(t *testing.T) {
 		t.Errorf("failed to join room as 3rd player")
 	}
 	body, _ = json.Marshal(joinRoomMsg{
-		UserID: 006,
-		RoomID: 0,
+		UserID:   006,
+		RoomID:   roomID,
+		Password: "pp",
 	})
 	req, err = http.NewRequest("PUT", "/room", bytes.NewReader(body))
 	if err != nil {
@@ -81,8 +99,9 @@ func TestRoomJoinHandler(t *testing.T) {
 		t.Errorf("failed to join room as 4th player")
 	}
 	body, _ = json.Marshal(joinRoomMsg{
-		UserID: 006,
-		RoomID: 0,
+		UserID:   006,
+		RoomID:   roomID,
+		Password: "pp",
 	})
 	req, err = http.NewRequest("PUT", "/room", bytes.NewReader(body))
 	if err != nil {

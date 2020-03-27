@@ -24,16 +24,19 @@ func TestHall_CreateRoom(t *testing.T) {
 func TestHall_JoinRoom(t *testing.T) {
 	hall := GetHall()
 	roomID := hall.CreateRoom(0002, "test room", "ppp")
-	if !hall.JoinRoom(0003, roomID) {
+	if !hall.JoinRoom(0003, roomID, "ppp") {
 		t.Errorf("2nd player joined failed")
 	}
-	if !hall.JoinRoom(0004, roomID) {
+	if !hall.JoinRoom(0004, roomID, "ppp") {
 		t.Errorf("3rd player joined failed")
 	}
-	if !hall.JoinRoom(0005, roomID) {
+	if hall.JoinRoom(0005, roomID, "pppaaa") {
+		t.Errorf("joined room via wrong password")
+	}
+	if !hall.JoinRoom(0005, roomID, "ppp") {
 		t.Errorf("4th player joined failed")
 	}
-	if hall.JoinRoom(0006, roomID) {
+	if hall.JoinRoom(0006, roomID, "ppp") {
 		t.Errorf("5th player joined room")
 	}
 }
@@ -47,7 +50,7 @@ func TestHall_GetRoomID(t *testing.T) {
 	if hall.GetRoomID(8) >= 0 {
 		t.Errorf("get ghost roomID")
 	}
-	hall.JoinRoom(8, roomID)
+	hall.JoinRoom(8, roomID, "ppp")
 	if hall.GetRoomID(8) != roomID {
 		t.Errorf("get wrong roomID")
 	}
