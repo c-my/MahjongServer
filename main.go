@@ -1,7 +1,10 @@
 package main
 
 import (
+	"github.com/c-my/MahjongServer/container"
+	"github.com/c-my/MahjongServer/controller"
 	"github.com/c-my/MahjongServer/rule"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -15,7 +18,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-var room *Room
+var room *container.Room
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	log.Println("connection received")
@@ -24,9 +27,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	room = NewRoom(rule.NewJinzhouRule())
+	room = container.NewRoom(rule.NewJinzhouRule())
 	room.Start()
-
-	http.HandleFunc("/", handler)
-	http.ListenAndServe("127.0.0.1:1114", nil)
+	router := mux.NewRouter()
+	router.HandleFunc("/room/", controller.RoomCreateHandler).Methods("POST")
+	router.HandleFunc("/room/", controller.RoomJoinHandler).Methods("PUT")
+	router.HandleFunc("/", handler)
+	http.ListenAndServe("127.0.0.1:1114", router)
 }

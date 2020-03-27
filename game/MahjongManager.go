@@ -75,8 +75,8 @@ func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendC
 }
 
 func (m *MahjongManager) handleStart(msg message.GameMsgRecv) {
-	//m.dealTile()
-	m.dealTileTest()
+	m.dealTile()
+	//m.dealTileTest()
 	newTile := m.wall.FrontDraw()
 	//TODO:判断第一张牌能否碰、杠、胡
 	availableActions := m.getAvailableActions(m.playerTile[msg.TableOrder].HandTiles, m.playerTile[msg.TableOrder].ShownTiles, newTile)
@@ -134,14 +134,25 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
 	for i := 1; i <= 3; i++ {
 		hand := m.playerTile[(currentOrder+i)%4].HandTiles
 		if m.rules.CanExposedKong(hand, msg.Tile) {
+			availableAction := make([]int, 0)
+			chowTypes := make([]int, 0)
+			availableAction = append(availableAction, config.Pong, config.ExposedKong)
+			if i == 1 {
+				canChow, types := m.rules.CanChow(hand, msg.Tile)
+				if canChow {
+					availableAction = append(availableAction, config.Chow)
+					chowTypes = types
+				}
+			}
 			msgSend := message.GameMsgSend{
 				MsgType:          config.GameMsgType,
 				TableOrder:       -1,
 				CurrentTurn:      (currentOrder + i) % 4,
 				CurrentTile:      msg.Tile,
-				AvailableActions: []int{config.Pong, config.ExposedKong},
+				AvailableActions: availableAction,
 				LastTurn:         msg.TableOrder,
 				LastAction:       config.Discard,
+				ChowTypes:        chowTypes,
 				PlayerTile:       m.playerTile,
 				WallCount:        m.wall.Length(),
 			}
@@ -149,14 +160,25 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv) {
 			return
 		}
 		if m.rules.CanPong(hand, msg.Tile) {
+			availableAction := make([]int, 0)
+			chowTypes := make([]int, 0)
+			availableAction = append(availableAction, config.Pong)
+			if i == 1 {
+				canChow, types := m.rules.CanChow(hand, msg.Tile)
+				if canChow {
+					availableAction = append(availableAction, config.Chow)
+					chowTypes = types
+				}
+			}
 			msgSend := message.GameMsgSend{
 				MsgType:          config.GameMsgType,
 				TableOrder:       -1,
 				CurrentTurn:      (currentOrder + i) % 4,
 				CurrentTile:      msg.Tile,
-				AvailableActions: []int{config.Pong},
+				AvailableActions: availableAction,
 				LastTurn:         msg.TableOrder,
 				LastAction:       config.Discard,
+				ChowTypes:        chowTypes,
 				PlayerTile:       m.playerTile,
 				WallCount:        m.wall.Length(),
 			}
@@ -358,7 +380,7 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 	shown := m.playerTile[msg.TableOrder].ShownTiles
 
 	m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(hand, msg.Tile, 1)
-	pos:=0
+	pos := 0
 	for i, v := range shown {
 		if v.ShownType == config.Pong && v.Tiles[0].Equals(msg.Tile) {
 			pos = i

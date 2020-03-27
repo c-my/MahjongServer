@@ -6,8 +6,6 @@ import "github.com/c-my/MahjongServer/model"
 //	Action string `json:"action"`
 //}
 
-
-
 type GameMsgRecv struct {
 	MsgType int `json:"msg_type"`
 

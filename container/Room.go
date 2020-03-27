@@ -1,4 +1,4 @@
-package main
+package container
 
 import (
 	"github.com/c-my/MahjongServer/game"
@@ -13,6 +13,9 @@ type Room struct {
 
 	gameRecvCh chan message.GameMsgRecv
 	gameSendCh chan message.GameMsgSend
+
+	password    string
+	playerCount int
 }
 
 func NewRoom(rule rule.MahjongRule) *Room {

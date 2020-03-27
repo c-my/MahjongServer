@@ -32,15 +32,15 @@ func (r *JinzhouRule) CanChow(tiles []model.Tile, newTile model.Tile) (bool, []i
 	if !newTile.IsSuit() {
 		return false, append(chowTypes, config.NAC)
 	}
-	if r.canLeftChow(tiles, newTile){
+	if r.canLeftChow(tiles, newTile) {
 		canChow = true
 		chowTypes = append(chowTypes, config.LeftChow)
 	}
-	if r.canMidChow(tiles, newTile){
+	if r.canMidChow(tiles, newTile) {
 		canChow = true
 		chowTypes = append(chowTypes, config.MidChow)
 	}
-	if(r.canRightChow(tiles, newTile)){
+	if r.canRightChow(tiles, newTile) {
 		canChow = true
 		chowTypes = append(chowTypes, config.RightChow)
 	}
