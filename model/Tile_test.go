@@ -67,3 +67,65 @@ func TestIsAllSeqOrTriplet(t *testing.T) {
 		}
 	}
 }
+
+func TestGetTileCount(t *testing.T) {
+	tiles := []Tile{{0, 7}, {0, 8}, {0, 9},
+		{1, 1}, {1, 1}, {1, 1},
+		{1, 2}, {1, 2},
+		{2, 1}, {2, 2},
+		{2, 3}, {2, 6},
+		{2, 7}, {2, 8},
+		{2, 9}}
+	var tests = []struct {
+		input Tile
+		want  int
+	}{
+		{Tile{0, 7}, 1},
+		{Tile{1, 2}, 2},
+		{Tile{1, 1}, 3},
+		{Tile{3, 1}, 0},
+		{Tile{2, 1}, 1},
+		{Tile{2, 2}, 1},
+		{Tile{0, 0}, 0},
+	}
+
+	for _, test := range tests {
+		if GetTileCount(tiles, test.input) != test.want {
+			t.Errorf("get wrong tile count")
+		}
+	}
+}
+
+func TestGetTilePos(t *testing.T) {
+	tiles := []Tile{{0, 7}, {0, 8}, {0, 9},
+		{1, 1}, {1, 1}, {1, 1},
+		{1, 2}, {1, 2},
+		{2, 1}, {2, 2},
+		{2, 3}, {2, 6},
+		{2, 7}, {2, 8},
+		{2, 9}}
+	var tests = []struct {
+		input Tile
+		want  int
+	}{
+		{Tile{0, 7}, 0},
+		{Tile{0, 8}, 1},
+		{Tile{0, 9}, 2},
+		{Tile{1, 1}, 3},
+		{Tile{1, 2}, 6},
+		{Tile{2, 1}, 8},
+		{Tile{2, 2}, 9},
+		{Tile{2, 3}, 10},
+		{Tile{2, 6}, 11},
+		{Tile{2, 7}, 12},
+		{Tile{2, 8}, 13},
+		{Tile{2, 9}, 14},
+		{Tile{0, 0}, -1},
+		{Tile{1, 3}, -1},
+	}
+	for _,test:=range tests{
+		if GetTilePos(tiles, test.input)!=test.want{
+			t.Errorf("get wrong tile postion")
+		}
+	}
+}

@@ -52,6 +52,10 @@ func (h *Hall) JoinRoom(userID int, roomID int) bool {
 	return true
 }
 
+func (h *Hall) GetAllRoom() map[int]*Room {
+	return h.rooms
+}
+
 func (h *Hall) GetRoomID(userID int) int {
 	roomID, ok := h.players[userID]
 	if !ok {
