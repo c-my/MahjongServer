@@ -3,12 +3,12 @@ package container
 import "testing"
 
 func TestGetHall(t *testing.T) {
-	hall:=GetHall()
-	if hall ==nil{
+	hall := GetHall()
+	if hall == nil {
 		t.Errorf("get nil hall")
 	}
-	hall2:=GetHall()
-	if hall!=hall2{
+	hall2 := GetHall()
+	if hall != hall2 {
 		t.Errorf("get different hall")
 	}
 }
@@ -39,16 +39,16 @@ func TestHall_JoinRoom(t *testing.T) {
 }
 
 func TestHall_GetRoomID(t *testing.T) {
-	hall:=GetHall()
+	hall := GetHall()
 	roomID := hall.CreateRoom(0007, "test room", "ppp")
-	if hall.GetRoomID(7)!=roomID{
+	if hall.GetRoomID(7) != roomID {
 		t.Errorf("get wrong roomID")
 	}
-	if hall.GetRoomID(8)>=0{
+	if hall.GetRoomID(8) >= 0 {
 		t.Errorf("get ghost roomID")
 	}
 	hall.JoinRoom(8, roomID)
-	if hall.GetRoomID(8)!=roomID{
+	if hall.GetRoomID(8) != roomID {
 		t.Errorf("get wrong roomID")
 	}
 }

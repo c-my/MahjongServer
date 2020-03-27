@@ -2,6 +2,7 @@ package container
 
 import (
 	"github.com/c-my/MahjongServer/rule"
+	"github.com/gorilla/websocket"
 )
 
 type Hall struct {
@@ -30,6 +31,7 @@ func (h *Hall) CreateRoom(userID int, roomName string, passwd string) int {
 	for i := 0; i < h.maxRoomSize; i++ {
 		if !h.hasRoom(i) {
 			room := NewRoom(rule.NewJinzhouRule())
+			room.Start()
 			room.playerCount = 1
 			h.rooms[i] = room
 			h.players[userID] = i
@@ -39,12 +41,15 @@ func (h *Hall) CreateRoom(userID int, roomName string, passwd string) int {
 	return -1
 }
 
-func (h *Hall) JoinRoom(userID int, roomID int) bool {
+func (h *Hall) JoinRoom(userID int, roomID int, password string) bool {
 	if !h.hasRoom(roomID) {
 		return false
 	}
 	room := h.rooms[roomID]
 	if room.playerCount >= 4 {
+		return false
+	}
+	if room.password != password {
 		return false
 	}
 	h.players[userID] = roomID
@@ -63,6 +68,10 @@ func (h *Hall) GetRoomID(userID int) int {
 	} else {
 		return roomID
 	}
+}
+
+func (h *Hall) AddConn(roomID int, conn *websocket.Conn) {
+	h.rooms[roomID].AddConn(conn)
 }
 
 func (h *Hall) hasRoom(roomID int) bool {

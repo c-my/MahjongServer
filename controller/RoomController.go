@@ -14,8 +14,9 @@ type createRoomMsg struct {
 }
 
 type joinRoomMsg struct {
-	UserID int `json:"user_id"`
-	RoomID int `json:"room_id"`
+	UserID   int    `json:"user_id"`
+	RoomID   int    `json:"room_id"`
+	Password string `json:"passwd"`
 }
 
 type result struct {
@@ -55,8 +56,9 @@ func RoomJoinHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 	userID := msg.UserID
 	roomID := msg.RoomID
+	password := msg.Password
 
-	success := container.GetHall().JoinRoom(userID, roomID)
+	success := container.GetHall().JoinRoom(userID, roomID, password)
 	if !success {
 		j, _ := json.Marshal(failMsg())
 		writer.Write(j)

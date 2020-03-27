@@ -123,8 +123,8 @@ func TestGetTilePos(t *testing.T) {
 		{Tile{0, 0}, -1},
 		{Tile{1, 3}, -1},
 	}
-	for _,test:=range tests{
-		if GetTilePos(tiles, test.input)!=test.want{
+	for _, test := range tests {
+		if GetTilePos(tiles, test.input) != test.want {
 			t.Errorf("get wrong tile postion")
 		}
 	}
