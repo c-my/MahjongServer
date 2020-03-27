@@ -32,6 +32,7 @@ func (h *Hall) CreateRoom(userID int, roomName string, passwd string) int {
 		if !h.hasRoom(i) {
 			room := NewRoom(rule.NewJinzhouRule())
 			room.Start()
+			room.password = passwd
 			room.playerCount = 1
 			h.rooms[i] = room
 			h.players[userID] = i
