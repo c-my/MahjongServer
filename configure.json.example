@@ -1,0 +1,10 @@
+{
+  "DB_URL": "",
+  "DB_PORT": "5432",
+  "DB_NAME": "",
+  "DB_USER": "",
+  "DB_PASSWD": "",
+
+  "HTTP_URL": "127.0.0.1",
+  "HTTP_PORT":"1114"
+}
