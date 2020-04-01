@@ -9,12 +9,14 @@ import (
 )
 
 type MahjongManager struct {
-	wall       *model.Wall
-	playerTile []model.PlayerTile
-	rules      rule.MahjongRule
+	wall        *model.Wall
+	playerTile  []model.PlayerTile
+	rules       rule.MahjongRule
+	firstPlayer int
 
-	gameRecvCh chan message.GameMsgRecv
-	gameSendCh chan message.GameMsgSend
+	gameRecvCh   chan message.GameMsgRecv
+	gameSendCh   chan message.GameMsgSend
+	tableOrderCh chan int
 
 	lastTableOrder    int
 	currentTableOrder int
@@ -27,13 +29,18 @@ type MahjongManager struct {
 
 //NewMahjongManager return new Mahjong instance, with initiated game channels
 // and tile-wall
-func NewMahjongManager(gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend, r rule.MahjongRule) *MahjongManager {
+func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
+	gameSendCh chan message.GameMsgSend,
+	tableOrderCh chan int,
+	r rule.MahjongRule) *MahjongManager {
 	mahjong := MahjongManager{}
 	mahjong.rules = r
 	mahjong.wall = model.NewWall(r.GenerateTiles)
 	mahjong.playerTile = make([]model.PlayerTile, 4)
+	mahjong.firstPlayer = 0
 	mahjong.gameRecvCh = gameRecvCh
 	mahjong.gameSendCh = gameSendCh
+	mahjong.tableOrderCh = tableOrderCh
 	return &mahjong
 }
 
@@ -52,6 +59,8 @@ func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendC
 		log.Printf("player:[%d], action:[%d] ", msg.TableOrder, msg.Action)
 		switch msg.Action {
 		case config.Start:
+			//inform each player their order
+			m.tableOrderCh <- m.firstPlayer
 			m.handleStart(msg)
 		case config.Discard:
 			m.handleDiscard(msg)

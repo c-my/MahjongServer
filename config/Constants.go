@@ -13,6 +13,7 @@ const (
 	Cancel            //取消操作
 	Discard           //打牌
 	Draw              //发牌（一张）
+	Ready             //玩家准备
 )
 
 // 吃牌的类型
@@ -25,5 +26,7 @@ const (
 
 const (
 	GameMsgType int = iota
+	TableOrderMsgType
+	RoomControl
 	ChatMsgType
 )

@@ -12,15 +12,20 @@ type ConnManager struct {
 	playersCount int
 	conns        []websocket.Conn
 
-	gameRecvCh chan message.GameMsgRecv
-	gameSendCh chan message.GameMsgSend
+	gameRecvCh   chan message.GameMsgRecv
+	gameSendCh   chan message.GameMsgSend
+	tableOrderCh chan int
 }
 
-func NewConnManager(playersCount int, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) *ConnManager {
+func NewConnManager(playersCount int,
+	gameRecvCh chan message.GameMsgRecv,
+	gameSendCh chan message.GameMsgSend,
+	tableOrderCh chan int) *ConnManager {
 	connManager := ConnManager{playersCount: playersCount,
-		conns:      make([]websocket.Conn, 0),
-		gameRecvCh: gameRecvCh,
-		gameSendCh: gameSendCh,
+		conns:        make([]websocket.Conn, 0),
+		gameRecvCh:   gameRecvCh,
+		gameSendCh:   gameSendCh,
+		tableOrderCh: tableOrderCh,
 	}
 	go connManager.Broadcaster()
 	return &connManager
@@ -39,8 +44,24 @@ func (m *ConnManager) Broadcaster() {
 			for _, conn := range m.conns {
 				conn.WriteJSON(msg)
 			}
+		case first := <-m.tableOrderCh:
+			log.Println("send table order")
+			for i := 0; i < 4; i++ {
+				msg := message.TableOrderMsg{
+					MsgType:    config.TableOrderMsgType,
+					TableOrder: i,
+				}
+				m.conns[(first+i)%4].WriteJSON(msg)
+			}
 		}
 	}
+}
+
+func (m *ConnManager) SendMsgTo(order int, msg []byte) {
+	if order >= len(m.conns) {
+		return
+	}
+	m.conns[order].WriteMessage(websocket.TextMessage, msg)
 }
 
 func connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) {
