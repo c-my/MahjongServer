@@ -5,6 +5,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	Success       = 1
+	NoSuchRoom    = -1
+	NoSeat        = -2
+	WrongPassword = -3
+)
+
 type Hall struct {
 	rooms   map[int]*Room
 	players map[int]int
@@ -27,7 +34,7 @@ func NewHall(maxRoomSize int) *Hall {
 	return &Hall{maxRoomSize: maxRoomSize, rooms: map[int]*Room{}, players: map[int]int{}}
 }
 
-func (h *Hall) CreateRoom(userID int, roomName string, passwd string) int {
+func (h *Hall) CreateRoom(userID int, passwd string) int {
 	for i := 0; i < h.maxRoomSize; i++ {
 		if !h.hasRoom(i) {
 			room := NewRoom(rule.NewJinzhouRule())
@@ -42,20 +49,20 @@ func (h *Hall) CreateRoom(userID int, roomName string, passwd string) int {
 	return -1
 }
 
-func (h *Hall) JoinRoom(userID int, roomID int, password string) bool {
+func (h *Hall) JoinRoom(userID int, roomID int, password string) int {
 	if !h.hasRoom(roomID) {
-		return false
+		return NoSuchRoom
 	}
 	room := h.rooms[roomID]
 	if room.playerCount >= 4 {
-		return false
+		return NoSeat
 	}
 	if room.password != password {
-		return false
+		return WrongPassword
 	}
 	h.players[userID] = roomID
 	room.playerCount = room.playerCount + 1
-	return true
+	return Success
 }
 
 func (h *Hall) GetAllRoom() map[int]*Room {

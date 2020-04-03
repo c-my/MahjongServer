@@ -31,7 +31,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	userID, err := strconv.Atoi(user)
 	if err != nil {
-		log.Println("Ignore: userID isn't a number")
+		log.Println("Ignore: userID[", user, "] isn't a number")
 		conn.Close()
 		return
 	}

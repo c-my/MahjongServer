@@ -11,7 +11,7 @@ import (
 )
 
 func TestRoomCreateHandler(t *testing.T) {
-	body, _ := json.Marshal(createRoomMsg{UserID: 123, RoomName: "test room", Passwd: "ppp"})
+	body, _ := json.Marshal(createRoomMsg{UserID: 123, Passwd: "ppp"})
 	req, err := http.NewRequest("POST", "/room", bytes.NewReader(body))
 	if err != nil {
 		t.Fatal(err)
@@ -26,12 +26,12 @@ func TestRoomCreateHandler(t *testing.T) {
 	if err != nil || msg.Success != true {
 		t.Errorf("failed to create first room")
 	} else {
-		log.Print("roomID: ", msg.RoomID)
+		log.Print("roomID: ", msg.Success)
 	}
 }
 
 func TestRoomJoinHandler(t *testing.T) {
-	roomID := container.GetHall().CreateRoom(003, "test", "pp")
+	roomID := container.GetHall().CreateRoom(003, "pp")
 	body, _ := json.Marshal(joinRoomMsg{
 		UserID:   004,
 		RoomID:   roomID,

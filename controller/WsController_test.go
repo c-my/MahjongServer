@@ -8,7 +8,7 @@ import (
 )
 
 func TestWsHandler(t *testing.T) {
-	container.GetHall().CreateRoom(100, "100r", "100")
+	container.GetHall().CreateRoom(100, "100")
 	u := url.URL{Scheme: "ws", Host: "127.0.0.1:1114", Path: "/100"}
 	_, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err == nil {

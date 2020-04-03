@@ -8,9 +8,8 @@ import (
 )
 
 type createRoomMsg struct {
-	UserID   int    `json:"user_id"`
-	RoomName string `json:"room_name"`
-	Passwd   string `json:"passwd"`
+	UserID int    `json:"user_id"`
+	Passwd string `json:"passwd"`
 }
 
 type joinRoomMsg struct {
@@ -20,29 +19,28 @@ type joinRoomMsg struct {
 }
 
 type result struct {
-	Success bool `json:"Success"`
-	RoomID  int  `json:"room_id"`
+	Success bool `json:"success"`
+	Reason  int  `json:"reason"`
 }
 
 func RoomCreateHandler(writer http.ResponseWriter, request *http.Request) {
 	var msg createRoomMsg
 	err := json.NewDecoder(request.Body).Decode(&msg)
 	if err != nil {
-		j, _ := json.Marshal(failMsg())
+		j, _ := json.Marshal(failMsg(0))
 		log.Print("failed to create room: unknown request")
 		writer.Write(j)
 	}
 	userID := msg.UserID
-	roomName := msg.RoomName
-	PassWord := msg.RoomName
-	roomID := container.GetHall().CreateRoom(userID, roomName, PassWord)
+	PassWord := msg.Passwd
+	roomID := container.GetHall().CreateRoom(userID, PassWord)
 	if roomID == -1 {
 		log.Print("failed to create room: max room size reached")
-		j, _ := json.Marshal(failMsg())
+		j, _ := json.Marshal(failMsg(0))
 		writer.Write(j)
 	}
-	log.Print("created room:", roomID)
-	j, _ := json.Marshal(successMsg(roomID))
+	log.Print("user[", userID, "] created room: ", roomID, " with password[", PassWord, "]")
+	j, _ := json.Marshal(successMsg())
 	writer.Write(j)
 }
 
@@ -50,7 +48,7 @@ func RoomJoinHandler(writer http.ResponseWriter, request *http.Request) {
 	var msg joinRoomMsg
 	err := json.NewDecoder(request.Body).Decode(&msg)
 	if err != nil {
-		j, _ := json.Marshal(failMsg())
+		j, _ := json.Marshal(failMsg(0))
 		log.Print("failed to join room: unknown request")
 		writer.Write(j)
 	}
@@ -59,19 +57,20 @@ func RoomJoinHandler(writer http.ResponseWriter, request *http.Request) {
 	password := msg.Password
 
 	success := container.GetHall().JoinRoom(userID, roomID, password)
-	if !success {
-		j, _ := json.Marshal(failMsg())
+	if success != container.Success {
+		log.Print("failed to join room, reason: ", success)
+		j, _ := json.Marshal(failMsg(success))
 		writer.Write(j)
 	} else {
-		j, _ := json.Marshal(successMsg(roomID))
+		j, _ := json.Marshal(successMsg())
 		writer.Write(j)
 	}
 }
 
-func successMsg(roomID int) result {
-	return result{Success: true, RoomID: roomID}
+func successMsg() result {
+	return result{Success: true, Reason: 1}
 }
 
-func failMsg() result {
-	return result{Success: false}
+func failMsg(reason int) result {
+	return result{Success: false, Reason: reason}
 }
