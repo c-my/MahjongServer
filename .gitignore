@@ -16,3 +16,5 @@
 
 # configure file
 configure.json
+# sqlite file
+data.db

@@ -36,6 +36,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/register/", controller.UserCreateHandler).Methods("POST")
+	router.HandleFunc("/login/", controller.UserLoginHandler).Methods("POST")
 	router.HandleFunc("/room/", controller.RoomCreateHandler).Methods("POST")
 	router.HandleFunc("/room/", controller.RoomJoinHandler).Methods("PUT")
 	router.HandleFunc("/ws/{userID}", controller.WsHandler)
