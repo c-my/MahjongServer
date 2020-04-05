@@ -1,5 +1,7 @@
 package message
 
+import "github.com/c-my/MahjongServer/model"
+
 type TableOrderMsg struct {
 	MsgType    int `json:"msg_type"`
 	TableOrder int `json:"table_order"`
@@ -10,6 +12,7 @@ type RoomInfoMsg struct {
 }
 
 type GameResultMsg struct {
-	MsgType int `json:"msg_type"`
-	Winner  int `json:"winner"`
+	MsgType   int        `json:"msg_type"`
+	Winner    int        `json:"winner"`
+	FinalTile model.Tile `json:"final_tile"`
 }

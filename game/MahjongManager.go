@@ -17,6 +17,7 @@ type MahjongManager struct {
 	gameRecvCh   chan message.GameMsgRecv
 	gameSendCh   chan message.GameMsgSend
 	tableOrderCh chan int
+	gameResultCh chan message.GameResultMsg
 
 	lastTableOrder    int
 	currentTableOrder int
@@ -30,6 +31,7 @@ type MahjongManager struct {
 func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	gameSendCh chan message.GameMsgSend,
 	tableOrderCh chan int,
+	gameResultCh chan message.GameResultMsg,
 	r rule.MahjongRule) *MahjongManager {
 	mahjong := MahjongManager{}
 	mahjong.rules = r
@@ -39,6 +41,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	mahjong.gameRecvCh = gameRecvCh
 	mahjong.gameSendCh = gameSendCh
 	mahjong.tableOrderCh = tableOrderCh
+	mahjong.gameResultCh = gameResultCh
 	return &mahjong
 }
 
@@ -77,7 +80,6 @@ func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendC
 		case config.Cancel:
 			m.handleCancel(msg)
 		}
-		// TODO:main logic here
 	}
 }
 
@@ -87,6 +89,10 @@ func (m *MahjongManager) handleStart(msg message.GameMsgRecv) {
 	m.dealTile()
 	//m.dealTileTest()
 	newTile := m.wall.FrontDraw()
+	if newTile.IsEmpty() {
+		m.gameResultCh <- getTieResult()
+		return
+	}
 	//TODO:判断第一张牌能否碰、杠、胡
 	availableActions := m.getAvailableActions(m.playerTile[msg.TableOrder].HandTiles, m.playerTile[msg.TableOrder].ShownTiles, newTile)
 	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
@@ -234,6 +240,10 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, removeHand bool)
 	m.lastTableOrder = msg.TableOrder
 	m.currentTableOrder = (msg.TableOrder + 1) % 4
 	newTile := m.wall.FrontDraw()
+	if newTile.IsEmpty() {
+		m.gameResultCh <- getTieResult()
+		return
+	}
 	availableActions := m.getAvailableActions(m.playerTile[m.currentTableOrder].HandTiles, m.playerTile[m.currentTableOrder].ShownTiles, newTile)
 	m.playerTile[m.currentTableOrder].HandTiles = append(m.playerTile[m.currentTableOrder].HandTiles, newTile)
 	model.SortTiles(m.playerTile[m.currentTableOrder].HandTiles)
@@ -349,6 +359,10 @@ func (m *MahjongManager) handleExposedKong(msg message.GameMsgRecv) {
 	m.playerTile[msg.TableOrder].ShownTiles = newShown
 	//为玩家发牌
 	newTile := m.wall.BackDraw()
+	if newTile.IsEmpty() {
+		m.gameResultCh <- getTieResult()
+		return
+	}
 	availableActions := m.getAvailableActions(m.playerTile[msg.TableOrder].HandTiles, m.playerTile[msg.TableOrder].ShownTiles, newTile)
 
 	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
@@ -383,6 +397,10 @@ func (m *MahjongManager) handleConcealedKong(msg message.GameMsgRecv) {
 	m.playerTile[msg.TableOrder].ShownTiles = newShown
 	//为玩家发牌
 	newTile := m.wall.BackDraw()
+	if newTile.IsEmpty() {
+		m.gameResultCh <- getTieResult()
+		return
+	}
 	availableActions := m.getAvailableActions(m.playerTile[msg.TableOrder].HandTiles, m.playerTile[msg.TableOrder].ShownTiles, newTile)
 	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
 	model.SortTiles(m.playerTile[msg.TableOrder].HandTiles)
@@ -427,6 +445,10 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 
 	//发牌
 	newTile := m.wall.BackDraw()
+	if newTile.IsEmpty() {
+		m.gameResultCh <- getTieResult()
+		return
+	}
 	availableActions := m.getAvailableActions(m.playerTile[msg.TableOrder].HandTiles, m.playerTile[msg.TableOrder].ShownTiles, newTile)
 	m.playerTile[msg.TableOrder].HandTiles = append(m.playerTile[msg.TableOrder].HandTiles, newTile)
 	model.SortTiles(m.playerTile[msg.TableOrder].HandTiles)
@@ -447,7 +469,12 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 
 func (m *MahjongManager) handleWin(msg message.GameMsgRecv) {
 	m.resetCancelList()
-
+	msgSend := message.GameResultMsg{
+		MsgType:   config.GameResultMsgType,
+		Winner:    msg.TableOrder,
+		FinalTile: msg.Tile,
+	}
+	m.gameResultCh <- msgSend
 }
 
 func (m *MahjongManager) handleCancel(msg message.GameMsgRecv) {
@@ -474,6 +501,14 @@ func (m *MahjongManager) resetCancelList() {
 	m.cancelList[1] = false
 	m.cancelList[2] = false
 	m.cancelList[3] = false
+}
+
+func getTieResult() message.GameResultMsg {
+	return message.GameResultMsg{
+		MsgType:   config.GameResultMsgType,
+		Winner:    -1,
+		FinalTile: model.Tile{},
+	}
 }
 
 func (m *MahjongManager) dealTile() {

@@ -227,3 +227,7 @@ func (t *Tile) GetRightTile() *Tile {
 	}
 	return nil
 }
+
+func (t *Tile) IsEmpty() bool {
+	return t.Number == 0
+}

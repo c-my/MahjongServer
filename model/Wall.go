@@ -21,7 +21,7 @@ func NewWall(generator func() []Tile) *Wall {
 
 func (w *Wall) FrontDraw() Tile {
 	if w.back < w.front {
-		panic("front-draw from empty wall")
+		return Tile{0, 0}
 	}
 	tile := w.tiles[w.front]
 	w.front++
@@ -30,7 +30,7 @@ func (w *Wall) FrontDraw() Tile {
 
 func (w *Wall) BackDraw() Tile {
 	if w.back < w.front {
-		panic("back-draw from empty wall")
+		return Tile{0, 0}
 	}
 	tile := w.tiles[w.back]
 	w.back--

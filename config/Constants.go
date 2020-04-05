@@ -27,6 +27,7 @@ const (
 const (
 	GameMsgType int = iota
 	TableOrderMsgType
+	GameResultMsgType
 	RoomControl
 	ChatMsgType
 )
