@@ -30,6 +30,7 @@ func RoomCreateHandler(writer http.ResponseWriter, request *http.Request) {
 		j, _ := json.Marshal(failMsg(0))
 		log.Print("failed to create room: unknown request")
 		writer.Write(j)
+		return
 	}
 	userID := msg.UserID
 	PassWord := msg.Passwd
@@ -38,6 +39,7 @@ func RoomCreateHandler(writer http.ResponseWriter, request *http.Request) {
 		log.Print("failed to create room: max room size reached")
 		j, _ := json.Marshal(failMsg(0))
 		writer.Write(j)
+		return
 	}
 	log.Print("user[", userID, "] created room: ", roomID, " with password[", PassWord, "]")
 	j, _ := json.Marshal(successMsg())
@@ -51,6 +53,7 @@ func RoomJoinHandler(writer http.ResponseWriter, request *http.Request) {
 		j, _ := json.Marshal(failMsg(0))
 		log.Print("failed to join room: unknown request")
 		writer.Write(j)
+		return
 	}
 	userID := msg.UserID
 	roomID := msg.RoomID
