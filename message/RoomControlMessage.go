@@ -16,3 +16,8 @@ type GameResultMsg struct {
 	Winner    int        `json:"winner"`
 	FinalTile model.Tile `json:"final_tile"`
 }
+
+type GetReadyMsg struct {
+	MsgType   int     `json:"msg_type"`
+	ReadyList [4]bool `json:"ready_list"`
+}

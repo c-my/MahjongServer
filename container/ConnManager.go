@@ -16,19 +16,22 @@ type ConnManager struct {
 	gameSendCh   chan message.GameMsgSend
 	tableOrderCh chan int
 	gameResultCh chan message.GameResultMsg
+	getReadyCh   chan message.GetReadyMsg
 }
 
 func NewConnManager(playersCount int,
 	gameRecvCh chan message.GameMsgRecv,
 	gameSendCh chan message.GameMsgSend,
 	tableOrderCh chan int,
-	gameResultCh chan message.GameResultMsg) *ConnManager {
+	gameResultCh chan message.GameResultMsg,
+	getReadyCh chan message.GetReadyMsg) *ConnManager {
 	connManager := ConnManager{playersCount: playersCount,
 		conns:        make([]websocket.Conn, 0),
 		gameRecvCh:   gameRecvCh,
 		gameSendCh:   gameSendCh,
 		tableOrderCh: tableOrderCh,
 		gameResultCh: gameResultCh,
+		getReadyCh:   getReadyCh,
 	}
 	go connManager.Broadcaster()
 	return &connManager
@@ -58,6 +61,11 @@ func (m *ConnManager) Broadcaster() {
 			}
 		case msg := <-m.gameResultCh:
 			log.Println("broadcast game result")
+			for _, conn := range m.conns {
+				conn.WriteJSON(msg)
+			}
+		case msg := <-m.getReadyCh:
+			log.Println("broadcast ready message")
 			for _, conn := range m.conns {
 				conn.WriteJSON(msg)
 			}
