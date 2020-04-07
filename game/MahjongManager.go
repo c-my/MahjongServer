@@ -70,7 +70,7 @@ func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendC
 		case config.Ready:
 			m.handleReady(msg)
 		case config.Discard:
-			m.handleDiscard(msg, true)
+			m.handleDiscard(msg, false)
 		case config.Chow:
 			m.handleChow(msg)
 		case config.Pong:
@@ -139,10 +139,12 @@ func (m *MahjongManager) Draw(hand []model.Tile, shown []model.ShownTile, newTil
 
 }
 
-func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, removeHand bool) {
+func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled bool) {
 	currentOrder := msg.TableOrder
 	m.lastTableOrder = msg.TableOrder
-	if removeHand { //从手牌中删除
+	lastAct := config.Cancel
+	if !isJustCanceled { //从手牌中删除
+		lastAct = config.Discard
 		m.lastMsgRecv = msg
 		hand := m.playerTile[msg.TableOrder].HandTiles
 		m.playerTile[msg.TableOrder].HandTiles = model.RemoveTile(hand, msg.Tile, 1)
@@ -165,7 +167,8 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, removeHand bool)
 				CurrentTile:      msg.Tile,
 				AvailableActions: []int{config.Win},
 				LastTurn:         msg.TableOrder,
-				LastAction:       config.Discard,
+				LastAction:       lastAct,
+				LastTile:         msg.Tile,
 				PlayerTile:       m.playerTile,
 				WallCount:        m.wall.Length(),
 			}
@@ -198,7 +201,8 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, removeHand bool)
 				CurrentTile:      msg.Tile,
 				AvailableActions: availableAction,
 				LastTurn:         msg.TableOrder,
-				LastAction:       config.Discard,
+				LastAction:       lastAct,
+				LastTile:         msg.Tile,
 				ChowTypes:        chowTypes,
 				PlayerTile:       m.playerTile,
 				WallCount:        m.wall.Length(),
@@ -224,7 +228,8 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, removeHand bool)
 				CurrentTile:      msg.Tile,
 				AvailableActions: availableAction,
 				LastTurn:         msg.TableOrder,
-				LastAction:       config.Discard,
+				LastAction:       lastAct,
+				LastTile:         msg.Tile,
 				ChowTypes:        chowTypes,
 				PlayerTile:       m.playerTile,
 				WallCount:        m.wall.Length(),
@@ -246,7 +251,8 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, removeHand bool)
 			CurrentTile:      msg.Tile,
 			AvailableActions: []int{config.Chow},
 			LastTurn:         msg.TableOrder,
-			LastAction:       config.Discard,
+			LastAction:       lastAct,
+			LastTile:         msg.Tile,
 			ChowTypes:        chowTypes,
 			PlayerTile:       m.playerTile,
 			WallCount:        m.wall.Length(),
@@ -276,7 +282,8 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, removeHand bool)
 		CurrentTile:      newTile,
 		AvailableActions: availableActions,
 		LastTurn:         msg.TableOrder,
-		LastAction:       config.Discard,
+		LastAction:       lastAct,
+		LastTile:         msg.Tile,
 		PlayerTile:       m.playerTile,
 		WallCount:        m.wall.Length(),
 	}
@@ -501,7 +508,7 @@ func (m *MahjongManager) handleWin(msg message.GameMsgRecv) {
 
 func (m *MahjongManager) handleCancel(msg message.GameMsgRecv) {
 	m.cancelList[msg.TableOrder] = true
-	m.handleDiscard(m.lastMsgRecv, false)
+	m.handleDiscard(m.lastMsgRecv, true)
 }
 
 func (m *MahjongManager) getAvailableActions(hand []model.Tile, shown []model.ShownTile, newTile model.Tile) []int {
