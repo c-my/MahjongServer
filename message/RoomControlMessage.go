@@ -7,6 +7,11 @@ type TableOrderMsg struct {
 	TableOrder int `json:"table_order"`
 }
 
+type UserOrderMsg struct {
+	MsgType    int `json:"msg_type"`
+	TableOrder int `json:"user_order"`
+}
+
 type RoomInfoMsg struct {
 	MsgType int `json:"msg_type"`
 }

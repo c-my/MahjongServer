@@ -37,7 +37,7 @@ func NewConnManager(playersCount int,
 	return &connManager
 }
 
-func (m *ConnManager) SetConn(conn *websocket.Conn) {
+func (m *ConnManager) AddConn(conn *websocket.Conn) {
 	m.conns = append(m.conns, *conn)
 	go connListener(conn, m.gameRecvCh, m.gameSendCh)
 }
@@ -89,6 +89,7 @@ func connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gam
 		}
 		err = json.Unmarshal(msg, &commonMsg)
 		if err != nil {
+			//TODO: handle when user force exit
 			panic("not a valid message")
 		}
 

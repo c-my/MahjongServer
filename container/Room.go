@@ -39,7 +39,11 @@ func NewRoom(rule rule.MahjongRule) *Room {
 }
 
 func (r *Room) AddConn(conn *websocket.Conn) {
-	r.connManager.SetConn(conn)
+	r.connManager.AddConn(conn)
+}
+
+func (r *Room) AddUserInfo(info message.UserInfo) {
+	r.mahjongManager.AddUserInfo(info)
 }
 
 func (r *Room) Start() {

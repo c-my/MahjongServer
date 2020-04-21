@@ -25,6 +25,7 @@ type MahjongManager struct {
 
 	cancelList  [4]bool
 	readyList   [4]bool
+	userList    []message.UserInfo
 	lastMsgRecv message.GameMsgRecv
 }
 
@@ -115,6 +116,7 @@ func (m *MahjongManager) handleStart() {
 		LastTurn:         m.firstPlayer,
 		LastAction:       config.Draw,
 		PlayerTile:       m.playerTile,
+		UserList:         m.userList,
 		WallCount:        m.wall.Length(),
 	}
 	m.gameSendCh <- msgSend
@@ -170,6 +172,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 				LastAction:       lastAct,
 				LastTile:         msg.Tile,
 				PlayerTile:       m.playerTile,
+				UserList:         m.userList,
 				WallCount:        m.wall.Length(),
 			}
 			m.gameSendCh <- msgSend
@@ -205,6 +208,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 				LastTile:         msg.Tile,
 				ChowTypes:        chowTypes,
 				PlayerTile:       m.playerTile,
+				UserList:         m.userList,
 				WallCount:        m.wall.Length(),
 			}
 			m.gameSendCh <- msgSend
@@ -232,6 +236,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 				LastTile:         msg.Tile,
 				ChowTypes:        chowTypes,
 				PlayerTile:       m.playerTile,
+				UserList:         m.userList,
 				WallCount:        m.wall.Length(),
 			}
 			m.gameSendCh <- msgSend
@@ -255,6 +260,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 			LastTile:         msg.Tile,
 			ChowTypes:        chowTypes,
 			PlayerTile:       m.playerTile,
+			UserList:         m.userList,
 			WallCount:        m.wall.Length(),
 		}
 		m.gameSendCh <- msgSend
@@ -285,6 +291,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 		LastAction:       lastAct,
 		LastTile:         msg.Tile,
 		PlayerTile:       m.playerTile,
+		UserList:         m.userList,
 		WallCount:        m.wall.Length(),
 	}
 	m.gameSendCh <- msgSend
@@ -335,6 +342,7 @@ func (m *MahjongManager) handleChow(msg message.GameMsgRecv) {
 		LastTurn:         msg.TableOrder,
 		LastAction:       config.Chow,
 		PlayerTile:       m.playerTile,
+		UserList:         m.userList,
 		WallCount:        m.wall.Length(),
 	}
 	m.gameSendCh <- msgSend
@@ -366,6 +374,7 @@ func (m *MahjongManager) handlePong(msg message.GameMsgRecv) {
 		LastTurn:         m.currentTableOrder,
 		LastAction:       config.Pong,
 		PlayerTile:       m.playerTile,
+		UserList:         m.userList,
 		WallCount:        m.wall.Length(),
 	}
 	m.gameSendCh <- msgSend
@@ -406,6 +415,7 @@ func (m *MahjongManager) handleExposedKong(msg message.GameMsgRecv) {
 		LastTurn:         msg.TableOrder,
 		LastAction:       config.ExposedKong,
 		PlayerTile:       m.playerTile,
+		UserList:         m.userList,
 		WallCount:        m.wall.Length(),
 	}
 	m.gameSendCh <- msgSend
@@ -443,6 +453,7 @@ func (m *MahjongManager) handleConcealedKong(msg message.GameMsgRecv) {
 		LastTurn:         msg.TableOrder,
 		LastAction:       config.ConcealedKong,
 		PlayerTile:       m.playerTile,
+		UserList:         m.userList,
 		WallCount:        m.wall.Length(),
 	}
 	m.gameSendCh <- msgSend
@@ -491,6 +502,7 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 		LastTurn:         msg.TableOrder,
 		LastAction:       config.AddedKong,
 		PlayerTile:       m.playerTile,
+		UserList:         m.userList,
 		WallCount:        m.wall.Length(),
 	}
 	m.gameSendCh <- msgSend
@@ -530,6 +542,10 @@ func (m *MahjongManager) resetCancelList() {
 	m.cancelList[1] = false
 	m.cancelList[2] = false
 	m.cancelList[3] = false
+}
+
+func (m *MahjongManager) AddUserInfo(info message.UserInfo) {
+	m.userList = append(m.userList, info)
 }
 
 func (m *MahjongManager) resetReadyList() {

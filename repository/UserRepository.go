@@ -20,15 +20,20 @@ func (r *UserRepository) SelectByUsername(username string) (user datamodel.User,
 	return
 }
 
-func (r *UserRepository) Append(user datamodel.User) bool {
+func (r *UserRepository) SelectByID(userID int) (user datamodel.User, notfound bool) {
+	notfound = r.source.Where("ID = ?", userID).First(&user).RecordNotFound()
+	return
+}
+
+func (r *UserRepository) Append(user datamodel.User) (bool, uint) {
 	var u datamodel.User
 	if err := r.source.Where("username = ?", user.UserName).First(&u).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			r.source.Create(&user)
-			return true
+			return true, user.ID
 		}
 	}
-	return false
+	return false,0
 }
 
 // NewUserRepository is

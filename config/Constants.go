@@ -29,6 +29,7 @@ const (
 	TableOrderMsgType
 	GameResultMsgType
 	GetReadyMsgType
+	UserOrderMsgType
 	RoomControl
 	ChatMsgType
 )

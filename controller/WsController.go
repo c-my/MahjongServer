@@ -41,5 +41,5 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 		return
 	}
-	hall.AddConn(roomID, conn)
+	hall.AddUserToRoom(roomID, conn, userID)
 }

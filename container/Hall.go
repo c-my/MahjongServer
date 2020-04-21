@@ -1,6 +1,8 @@
 package container
 
 import (
+	"github.com/c-my/MahjongServer/message"
+	"github.com/c-my/MahjongServer/repository"
 	"github.com/c-my/MahjongServer/rule"
 	"github.com/gorilla/websocket"
 )
@@ -78,8 +80,13 @@ func (h *Hall) GetRoomID(userID int) int {
 	}
 }
 
-func (h *Hall) AddConn(roomID int, conn *websocket.Conn) {
+func (h *Hall) AddUserToRoom(roomID int, conn *websocket.Conn, userID int) {
 	h.rooms[roomID].AddConn(conn)
+	user, _ := repository.UserRepo.SelectByID(userID)
+	h.rooms[roomID].AddUserInfo(message.UserInfo{
+		NickName: user.NickName,
+		Gender:   user.Gender,
+	})
 }
 
 func (h *Hall) hasRoom(roomID int) bool {

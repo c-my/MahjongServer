@@ -28,5 +28,6 @@ type GameMsgSend struct {
 	ChowTypes        []int      `json:"chow_types"`        //可以吃的类型
 
 	PlayerTile []model.PlayerTile `json:"player_tile"` //全局麻将牌牌信息
-	WallCount  int                `json:"wall_count"`  // 剩余牌墙数量
+	UserList   []UserInfo         `json:"user_list"`
+	WallCount  int                `json:"wall_count"` // 剩余牌墙数量
 }
