@@ -16,6 +16,8 @@ func TestUserCreateHandler(t *testing.T) {
 	body, _ := json.Marshal(createUserMsg{
 		UserName: name,
 		Password: "qwer123",
+		Nickname: "Nick",
+		Gender:   datamodel.Female,
 	})
 	req, err := http.NewRequest("POST", "/register/", bytes.NewReader(body))
 	if err != nil {
