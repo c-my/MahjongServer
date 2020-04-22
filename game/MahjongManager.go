@@ -516,6 +516,10 @@ func (m *MahjongManager) handleWin(msg message.GameMsgRecv) {
 		FinalTile: msg.Tile,
 	}
 	m.gameResultCh <- msgSend
+	if msg.TableOrder != m.firstPlayer {
+		m.firstPlayer++
+		m.shiftUserList()
+	}
 }
 
 func (m *MahjongManager) handleCancel(msg message.GameMsgRecv) {
@@ -570,6 +574,14 @@ func canStartGame(readyList []bool) bool {
 		}
 	}
 	return true
+}
+
+func (m *MahjongManager) shiftUserList() {
+	tmp := m.userList[3]
+	for i := 3; i > 0; i-- {
+		m.userList[i] = m.userList[i-1]
+	}
+	m.userList[0] = tmp
 }
 
 func (m *MahjongManager) dealTile() {

@@ -10,7 +10,7 @@ import (
 
 type ConnManager struct {
 	playersCount int
-	conns        []websocket.Conn
+	conns        []*websocket.Conn
 
 	gameRecvCh   chan message.GameMsgRecv
 	gameSendCh   chan message.GameMsgSend
@@ -26,7 +26,7 @@ func NewConnManager(playersCount int,
 	gameResultCh chan message.GameResultMsg,
 	getReadyCh chan message.GetReadyMsg) *ConnManager {
 	connManager := ConnManager{playersCount: playersCount,
-		conns:        make([]websocket.Conn, 0),
+		conns:        make([]*websocket.Conn, 0),
 		gameRecvCh:   gameRecvCh,
 		gameSendCh:   gameSendCh,
 		tableOrderCh: tableOrderCh,
@@ -38,8 +38,8 @@ func NewConnManager(playersCount int,
 }
 
 func (m *ConnManager) AddConn(conn *websocket.Conn) {
-	m.conns = append(m.conns, *conn)
-	go connListener(conn, m.gameRecvCh, m.gameSendCh)
+	m.conns = append(m.conns, conn)
+	go m.connListener(conn, m.gameRecvCh, m.gameSendCh)
 }
 
 func (m *ConnManager) Broadcaster() {
@@ -80,16 +80,25 @@ func (m *ConnManager) SendMsgTo(order int, msg []byte) {
 	m.conns[order].WriteMessage(websocket.TextMessage, msg)
 }
 
-func connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) {
+func (m *ConnManager) checkConn(c *websocket.Conn) {
+	for index, conn := range m.conns {
+		if c == conn {
+			log.Println("user: ", index, " disconnected")
+		}
+	}
+}
+
+func (m *ConnManager) connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) {
 	for {
 		commonMsg := message.CommonMsg{}
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
+			//TODO: handle when user force exit
+			m.checkConn(conn)
 			log.Println("failed to read message")
 		}
 		err = json.Unmarshal(msg, &commonMsg)
 		if err != nil {
-			//TODO: handle when user force exit
 			panic("not a valid message")
 		}
 

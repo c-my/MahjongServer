@@ -33,7 +33,7 @@ func (r *UserRepository) Append(user datamodel.User) (bool, uint) {
 			return true, user.ID
 		}
 	}
-	return false,0
+	return false, 0
 }
 
 // NewUserRepository is

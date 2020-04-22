@@ -1,6 +1,6 @@
 package message
 
 type UserInfo struct {
-	NickName string `json:"nick_name"`
+	Nickname string `json:"nickname"`
 	Gender   int    `json:"gender"`
 }
