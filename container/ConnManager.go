@@ -17,6 +17,7 @@ type ConnManager struct {
 	tableOrderCh chan int
 	gameResultCh chan message.GameResultMsg
 	getReadyCh   chan message.GetReadyMsg
+	chatCh       chan message.ChatMsg
 }
 
 func NewConnManager(playersCount int,
@@ -24,7 +25,8 @@ func NewConnManager(playersCount int,
 	gameSendCh chan message.GameMsgSend,
 	tableOrderCh chan int,
 	gameResultCh chan message.GameResultMsg,
-	getReadyCh chan message.GetReadyMsg) *ConnManager {
+	getReadyCh chan message.GetReadyMsg,
+	chatCh chan message.ChatMsg) *ConnManager {
 	connManager := ConnManager{playersCount: playersCount,
 		conns:        make([]*websocket.Conn, 0),
 		gameRecvCh:   gameRecvCh,
@@ -32,6 +34,7 @@ func NewConnManager(playersCount int,
 		tableOrderCh: tableOrderCh,
 		gameResultCh: gameResultCh,
 		getReadyCh:   getReadyCh,
+		chatCh:       chatCh,
 	}
 	go connManager.Broadcaster()
 	return &connManager
@@ -39,7 +42,7 @@ func NewConnManager(playersCount int,
 
 func (m *ConnManager) AddConn(conn *websocket.Conn) {
 	m.conns = append(m.conns, conn)
-	go m.connListener(conn, m.gameRecvCh, m.gameSendCh)
+	go m.connListener(conn, m.gameRecvCh, m.chatCh)
 }
 
 func (m *ConnManager) Broadcaster() {
@@ -88,7 +91,7 @@ func (m *ConnManager) checkConn(c *websocket.Conn) {
 	}
 }
 
-func (m *ConnManager) connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) {
+func (m *ConnManager) connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, chatCh chan message.ChatMsg) {
 	for {
 		commonMsg := message.CommonMsg{}
 		_, msg, err := conn.ReadMessage()
@@ -112,6 +115,16 @@ func (m *ConnManager) connListener(conn *websocket.Conn, gameRecvCh chan message
 				panic("fail to decode game msg")
 			}
 			gameRecvCh <- gameMsg
+		case config.ChatMsgType:
+			log.Println("got a chat msg")
+			var chatMsg message.ChatMsg
+			err = json.Unmarshal(msg, &chatMsg)
+			if err != nil {
+				panic("fail to decode chat msg")
+			}
+			for _, conn := range m.conns {
+				conn.WriteJSON(chatMsg)
+			}
 		}
 	}
 }

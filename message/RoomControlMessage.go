@@ -26,3 +26,9 @@ type GetReadyMsg struct {
 	MsgType   int     `json:"msg_type"`
 	ReadyList [4]bool `json:"ready_list"`
 }
+
+type ChatMsg struct {
+	MsgType int    `json:"msg_type"`
+	From    int    `json:"from"`
+	Content string `json:"content"`
+}

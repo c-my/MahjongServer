@@ -19,6 +19,7 @@ type MahjongManager struct {
 	tableOrderCh chan int
 	gameResultCh chan message.GameResultMsg
 	getReadyCh   chan message.GetReadyMsg
+	chatCh       chan message.ChatMsg
 
 	lastTableOrder    int
 	currentTableOrder int
@@ -36,6 +37,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	tableOrderCh chan int,
 	gameResultCh chan message.GameResultMsg,
 	getReadyCh chan message.GetReadyMsg,
+	chatCh chan message.ChatMsg,
 	r rule.MahjongRule) *MahjongManager {
 	mahjong := MahjongManager{}
 	mahjong.rules = r
@@ -47,6 +49,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	mahjong.tableOrderCh = tableOrderCh
 	mahjong.gameResultCh = gameResultCh
 	mahjong.getReadyCh = getReadyCh
+	mahjong.chatCh = chatCh
 	return &mahjong
 }
 

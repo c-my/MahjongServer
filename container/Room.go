@@ -16,6 +16,7 @@ type Room struct {
 	tableOrderCh chan int
 	gameResultCh chan message.GameResultMsg
 	getReadyCh   chan message.GetReadyMsg
+	chatCh       chan message.ChatMsg
 
 	password    string
 	playerCount int
@@ -27,14 +28,16 @@ func NewRoom(rule rule.MahjongRule) *Room {
 	tableOrderChannel := make(chan int)
 	gameResultChannel := make(chan message.GameResultMsg)
 	getReadyChannel := make(chan message.GetReadyMsg)
+	chatChannel := make(chan message.ChatMsg)
 	return &Room{
 		gameRecvCh:     gameRecvChannel,
 		gameSendCh:     gameSendChannel,
 		tableOrderCh:   tableOrderChannel,
 		gameResultCh:   gameResultChannel,
 		getReadyCh:     getReadyChannel,
-		connManager:    NewConnManager(4, gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel),
-		mahjongManager: game.NewMahjongManager(gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, rule),
+		chatCh:         chatChannel,
+		connManager:    NewConnManager(4, gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel),
+		mahjongManager: game.NewMahjongManager(gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel, rule),
 	}
 }
 
