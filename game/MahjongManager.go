@@ -97,11 +97,11 @@ func (m *MahjongManager) handleStart() {
 	m.resetCancelList()
 	m.resetReadyList()
 
-	m.dealTile()
-	//m.dealTileTest()
+	//m.dealTile()
+	m.dealTileTest()
 	newTile := m.wall.FrontDraw()
 	if newTile.IsEmpty() {
-		m.gameResultCh <- getTieResult()
+		m.gameResultCh <- m.getTieResult()
 		return
 	}
 	//TODO:判断第一张牌能否碰、杠、胡
@@ -278,7 +278,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 	m.currentTableOrder = (msg.TableOrder + 1) % 4
 	newTile := m.wall.FrontDraw()
 	if newTile.IsEmpty() {
-		m.gameResultCh <- getTieResult()
+		m.gameResultCh <- m.getTieResult()
 		return
 	}
 	availableActions := m.getAvailableActions(m.playerTile[m.currentTableOrder].HandTiles, m.playerTile[m.currentTableOrder].ShownTiles, newTile)
@@ -401,7 +401,7 @@ func (m *MahjongManager) handleExposedKong(msg message.GameMsgRecv) {
 	//为玩家发牌
 	newTile := m.wall.BackDraw()
 	if newTile.IsEmpty() {
-		m.gameResultCh <- getTieResult()
+		m.gameResultCh <- m.getTieResult()
 		return
 	}
 	availableActions := m.getAvailableActions(m.playerTile[msg.TableOrder].HandTiles, m.playerTile[msg.TableOrder].ShownTiles, newTile)
@@ -440,7 +440,7 @@ func (m *MahjongManager) handleConcealedKong(msg message.GameMsgRecv) {
 	//为玩家发牌
 	newTile := m.wall.BackDraw()
 	if newTile.IsEmpty() {
-		m.gameResultCh <- getTieResult()
+		m.gameResultCh <- m.getTieResult()
 		return
 	}
 	availableActions := m.getAvailableActions(m.playerTile[msg.TableOrder].HandTiles, m.playerTile[msg.TableOrder].ShownTiles, newTile)
@@ -489,7 +489,7 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 	//发牌
 	newTile := m.wall.BackDraw()
 	if newTile.IsEmpty() {
-		m.gameResultCh <- getTieResult()
+		m.gameResultCh <- m.getTieResult()
 		return
 	}
 	availableActions := m.getAvailableActions(m.playerTile[msg.TableOrder].HandTiles, m.playerTile[msg.TableOrder].ShownTiles, newTile)
@@ -514,9 +514,11 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 func (m *MahjongManager) handleWin(msg message.GameMsgRecv) {
 	m.resetCancelList()
 	msgSend := message.GameResultMsg{
-		MsgType:   config.GameResultMsgType,
-		Winner:    msg.TableOrder,
-		FinalTile: msg.Tile,
+		MsgType:    config.GameResultMsgType,
+		Winner:     msg.TableOrder,
+		FinalTile:  msg.Tile,
+		PlayerTile: m.playerTile,
+		UserList:   m.userList,
 	}
 	m.gameResultCh <- msgSend
 	if msg.TableOrder != m.firstPlayer {
@@ -562,11 +564,13 @@ func (m *MahjongManager) resetReadyList() {
 	m.readyList[3] = false
 }
 
-func getTieResult() message.GameResultMsg {
+func (m *MahjongManager) getTieResult() message.GameResultMsg {
 	return message.GameResultMsg{
-		MsgType:   config.GameResultMsgType,
-		Winner:    -1,
-		FinalTile: model.Tile{},
+		MsgType:    config.GameResultMsgType,
+		Winner:     -1,
+		FinalTile:  model.Tile{},
+		PlayerTile: m.playerTile,
+		UserList:   m.userList,
 	}
 }
 
