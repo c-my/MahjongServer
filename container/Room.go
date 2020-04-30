@@ -29,6 +29,7 @@ func NewRoom(rule rule.MahjongRule) *Room {
 	gameResultChannel := make(chan message.GameResultMsg)
 	getReadyChannel := make(chan message.GetReadyMsg)
 	chatChannel := make(chan message.ChatMsg)
+	exitChannel := make(chan bool)
 	return &Room{
 		gameRecvCh:     gameRecvChannel,
 		gameSendCh:     gameSendChannel,
@@ -36,7 +37,7 @@ func NewRoom(rule rule.MahjongRule) *Room {
 		gameResultCh:   gameResultChannel,
 		getReadyCh:     getReadyChannel,
 		chatCh:         chatChannel,
-		connManager:    NewConnManager(4, gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel),
+		connManager:    NewConnManager(4, gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel, exitChannel),
 		mahjongManager: game.NewMahjongManager(gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel, rule),
 	}
 }

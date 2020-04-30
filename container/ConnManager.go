@@ -18,6 +18,7 @@ type ConnManager struct {
 	gameResultCh chan message.GameResultMsg
 	getReadyCh   chan message.GetReadyMsg
 	chatCh       chan message.ChatMsg
+	exitCh       chan bool
 }
 
 func NewConnManager(playersCount int,
@@ -26,7 +27,8 @@ func NewConnManager(playersCount int,
 	tableOrderCh chan int,
 	gameResultCh chan message.GameResultMsg,
 	getReadyCh chan message.GetReadyMsg,
-	chatCh chan message.ChatMsg) *ConnManager {
+	chatCh chan message.ChatMsg,
+	exitCh chan bool) *ConnManager {
 	connManager := ConnManager{playersCount: playersCount,
 		conns:        make([]*websocket.Conn, 0),
 		gameRecvCh:   gameRecvCh,
@@ -35,12 +37,19 @@ func NewConnManager(playersCount int,
 		gameResultCh: gameResultCh,
 		getReadyCh:   getReadyCh,
 		chatCh:       chatCh,
+		exitCh:       exitCh,
 	}
 	go connManager.Broadcaster()
 	return &connManager
 }
 
 func (m *ConnManager) AddConn(conn *websocket.Conn) {
+	index:= len(m.conns)
+	msg := message.TableOrderMsg{
+		MsgType:    config.TableOrderMsgType,
+		TableOrder: index,
+	}
+	conn.WriteJSON(msg)
 	m.conns = append(m.conns, conn)
 	go m.connListener(conn, m.gameRecvCh, m.chatCh)
 }
@@ -72,6 +81,10 @@ func (m *ConnManager) Broadcaster() {
 			for _, conn := range m.conns {
 				conn.WriteJSON(msg)
 			}
+		case msg := <-m.exitCh:
+			if msg {
+				return
+			}
 		}
 	}
 }
@@ -84,10 +97,17 @@ func (m *ConnManager) SendMsgTo(order int, msg []byte) {
 }
 
 func (m *ConnManager) checkConn(c *websocket.Conn) {
+	var user int
 	for index, conn := range m.conns {
 		if c == conn {
 			log.Println("user: ", index, " disconnected")
+			user = index
 		}
+	}
+	u := user
+	user = u
+	for _, conn := range m.conns {
+		conn.Close()
 	}
 }
 
