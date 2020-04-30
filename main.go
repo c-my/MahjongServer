@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/c-my/MahjongServer/container"
 	"github.com/c-my/MahjongServer/controller"
-	"github.com/c-my/MahjongServer/rule"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"io/ioutil"
@@ -30,8 +29,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	configure := readConfig()
-	room = container.NewRoom(rule.NewJinzhouRule())
-	room.Start()
+	//room = container.NewRoom(rule.NewJinzhouRule())
+	//room.Start()
 
 	router := mux.NewRouter()
 

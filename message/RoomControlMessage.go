@@ -17,12 +17,11 @@ type RoomInfoMsg struct {
 }
 
 type GameResultMsg struct {
-	MsgType   int        `json:"msg_type"`
-	Winner    int        `json:"winner"`
-	FinalTile model.Tile `json:"final_tile"`
-	PlayerTile  []model.PlayerTile	`json:"player_tile"`
-	UserList    []UserInfo	`json:"user_list"`
-
+	MsgType    int                `json:"msg_type"`
+	Winner     int                `json:"winner"`
+	FinalTile  model.Tile         `json:"final_tile"`
+	PlayerTile []model.PlayerTile `json:"player_tile"`
+	UserList   []UserInfo         `json:"user_list"`
 }
 
 type GetReadyMsg struct {

@@ -20,6 +20,7 @@ type MahjongManager struct {
 	gameResultCh chan message.GameResultMsg
 	getReadyCh   chan message.GetReadyMsg
 	chatCh       chan message.ChatMsg
+	exitCh       chan bool
 
 	lastTableOrder    int
 	currentTableOrder int
@@ -38,6 +39,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	gameResultCh chan message.GameResultMsg,
 	getReadyCh chan message.GetReadyMsg,
 	chatCh chan message.ChatMsg,
+	exitCh chan bool,
 	r rule.MahjongRule) *MahjongManager {
 	mahjong := MahjongManager{}
 	mahjong.rules = r
@@ -50,6 +52,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	mahjong.gameResultCh = gameResultCh
 	mahjong.getReadyCh = getReadyCh
 	mahjong.chatCh = chatCh
+	mahjong.exitCh = exitCh
 	return &mahjong
 }
 
@@ -64,31 +67,38 @@ func (m MahjongManager) GetFirstPlayer() {
 
 func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) {
 	for {
-		msg := <-gameRecvCh
-		log.Printf("player:[%d], action:[%d] ", msg.TableOrder, msg.Action)
-		switch msg.Action {
-		case config.Start:
-			//inform each player their order
-			m.tableOrderCh <- m.firstPlayer
-			m.handleStart()
-		case config.Ready:
-			m.handleReady(msg)
-		case config.Discard:
-			m.handleDiscard(msg, false)
-		case config.Chow:
-			m.handleChow(msg)
-		case config.Pong:
-			m.handlePong(msg)
-		case config.ExposedKong:
-			m.handleExposedKong(msg)
-		case config.ConcealedKong:
-			m.handleConcealedKong(msg)
-		case config.AddedKong:
-			m.handleAddedKong(msg)
-		case config.Win:
-			m.handleWin(msg)
-		case config.Cancel:
-			m.handleCancel(msg)
+		select {
+		case e := <-m.exitCh:
+			if e {
+				return
+			}
+		case msg := <-gameRecvCh:
+			log.Printf("player:[%d], action:[%d] ", msg.TableOrder, msg.Action)
+			switch msg.Action {
+			case config.Start:
+				//inform each player their order
+				m.tableOrderCh <- m.firstPlayer
+				m.handleStart()
+			case config.Ready:
+				m.handleReady(msg)
+			case config.Discard:
+				m.handleDiscard(msg, false)
+			case config.Chow:
+				m.handleChow(msg)
+			case config.Pong:
+				m.handlePong(msg)
+			case config.ExposedKong:
+				m.handleExposedKong(msg)
+			case config.ConcealedKong:
+				m.handleConcealedKong(msg)
+			case config.AddedKong:
+				m.handleAddedKong(msg)
+			case config.Win:
+				m.handleWin(msg)
+			case config.Cancel:
+				m.handleCancel(msg)
+			}
+
 		}
 	}
 }

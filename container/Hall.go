@@ -19,6 +19,7 @@ type Hall struct {
 	players map[int]int
 
 	maxRoomSize int
+	destroyCh   chan int
 }
 
 var hall *Hall = nil
@@ -33,13 +34,15 @@ func GetHall() *Hall {
 }
 
 func NewHall(maxRoomSize int) *Hall {
-	return &Hall{maxRoomSize: maxRoomSize, rooms: map[int]*Room{}, players: map[int]int{}}
+	hall:=Hall{maxRoomSize: maxRoomSize, rooms: map[int]*Room{}, players: map[int]int{}, destroyCh: make(chan int)}
+	go hall.roomController()
+	return &hall
 }
 
 func (h *Hall) CreateRoom(userID int, passwd string) int {
 	for i := 0; i < h.maxRoomSize; i++ {
 		if !h.hasRoom(i) {
-			room := NewRoom(rule.NewJinzhouRule())
+			room := NewRoom(i, rule.NewJinzhouRule(), h.destroyCh)
 			room.Start()
 			room.password = passwd
 			room.playerCount = 1
@@ -96,4 +99,11 @@ func (h *Hall) hasRoom(roomID int) bool {
 
 func (h *Hall) destroyRoom(roomID int) {
 	delete(h.rooms, roomID)
+}
+
+func (h *Hall) roomController() {
+	for {
+		roomID := <-h.destroyCh
+		h.destroyRoom(roomID)
+	}
 }

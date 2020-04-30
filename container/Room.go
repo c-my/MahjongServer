@@ -8,6 +8,7 @@ import (
 )
 
 type Room struct {
+	roomID         int
 	connManager    *ConnManager
 	mahjongManager *game.MahjongManager
 
@@ -18,11 +19,13 @@ type Room struct {
 	getReadyCh   chan message.GetReadyMsg
 	chatCh       chan message.ChatMsg
 
+	destroyCh chan int
+
 	password    string
 	playerCount int
 }
 
-func NewRoom(rule rule.MahjongRule) *Room {
+func NewRoom(roomID int, rule rule.MahjongRule, destroyCh chan int) *Room {
 	gameRecvChannel := make(chan message.GameMsgRecv)
 	gameSendChannel := make(chan message.GameMsgSend)
 	tableOrderChannel := make(chan int)
@@ -31,14 +34,16 @@ func NewRoom(rule rule.MahjongRule) *Room {
 	chatChannel := make(chan message.ChatMsg)
 	exitChannel := make(chan bool)
 	return &Room{
+		roomID:         roomID,
 		gameRecvCh:     gameRecvChannel,
 		gameSendCh:     gameSendChannel,
 		tableOrderCh:   tableOrderChannel,
 		gameResultCh:   gameResultChannel,
 		getReadyCh:     getReadyChannel,
 		chatCh:         chatChannel,
-		connManager:    NewConnManager(4, gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel, exitChannel),
-		mahjongManager: game.NewMahjongManager(gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel, rule),
+		destroyCh:      destroyCh,
+		connManager:    NewConnManager(roomID, 4, gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel, exitChannel, destroyCh),
+		mahjongManager: game.NewMahjongManager(gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, chatChannel, exitChannel, rule),
 	}
 }
 
