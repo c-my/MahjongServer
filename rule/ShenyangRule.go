@@ -5,14 +5,14 @@ import (
 	"github.com/c-my/MahjongServer/model"
 )
 
-type JinzhouRule struct {
+type ShenyangRule struct {
 }
 
-func NewJinzhouRule() *JinzhouRule {
-	return &JinzhouRule{}
+func NewShenyangRule() *ShenyangRule {
+	return &ShenyangRule{}
 }
 
-func (r *JinzhouRule) GenerateTiles() []model.Tile {
+func (r *ShenyangRule) GenerateTiles() []model.Tile {
 	tiles := make([]model.Tile, 0)
 	// generate all tiles
 	for s := 0; s < 4; s++ {
@@ -22,11 +22,17 @@ func (r *JinzhouRule) GenerateTiles() []model.Tile {
 				model.Tile{model.Dot, i})
 		}
 		tiles = append(tiles, model.Tile{model.Dragon, 1})
+		tiles = append(tiles, model.Tile{model.Dragon, 2})
+		tiles = append(tiles, model.Tile{model.Dragon, 3})
+		tiles = append(tiles, model.Tile{model.Wind, 1})
+		tiles = append(tiles, model.Tile{model.Wind, 2})
+		tiles = append(tiles, model.Tile{model.Wind, 3})
+		tiles = append(tiles, model.Tile{model.Wind, 4})
 	}
 	return tiles
 }
 
-func (r *JinzhouRule) CanChow(tiles []model.Tile, newTile model.Tile) (bool, []int) {
+func (r *ShenyangRule) CanChow(tiles []model.Tile, newTile model.Tile) (bool, []int) {
 	var canChow = false
 	var chowTypes []int
 	if !newTile.IsSuit() {
@@ -47,19 +53,19 @@ func (r *JinzhouRule) CanChow(tiles []model.Tile, newTile model.Tile) (bool, []i
 	return canChow, chowTypes
 }
 
-func (r *JinzhouRule) CanPong(tiles []model.Tile, newTile model.Tile) bool {
+func (r *ShenyangRule) CanPong(tiles []model.Tile, newTile model.Tile) bool {
 	return model.GetTileCount(tiles, newTile) >= 2
 }
 
-func (r *JinzhouRule) CanExposedKong(tiles []model.Tile, newTile model.Tile) bool {
+func (r *ShenyangRule) CanExposedKong(tiles []model.Tile, newTile model.Tile) bool {
 	return model.GetTileCount(tiles, newTile) == 3
 }
 
-func (r *JinzhouRule) CanConcealedKong(tiles []model.Tile, newTile model.Tile) bool {
+func (r *ShenyangRule) CanConcealedKong(tiles []model.Tile, newTile model.Tile) bool {
 	return r.CanExposedKong(tiles, newTile)
 }
 
-func (r *JinzhouRule) CanAddedKong(shown []model.ShownTile, newTile model.Tile) bool {
+func (r *ShenyangRule) CanAddedKong(shown []model.ShownTile, newTile model.Tile) bool {
 	for _, v := range shown {
 		if v.ShownType == config.Pong && v.Tiles[0].Equals(newTile) {
 			return true
@@ -68,7 +74,12 @@ func (r *JinzhouRule) CanAddedKong(shown []model.ShownTile, newTile model.Tile) 
 	return false
 }
 
-func (r *JinzhouRule) CanWin(handTiles []model.Tile, showTiles []model.ShownTile, newTile model.Tile) bool {
+func (r *ShenyangRule) CanWin(handTiles []model.Tile, showTiles []model.ShownTile, newTile model.Tile) bool {
+	//必须开门
+	if len(showTiles) == 0 {
+		return false
+	}
+
 	tarTiles := make([]model.Tile, len(handTiles))
 	copy(tarTiles, handTiles)
 
@@ -79,13 +90,12 @@ func (r *JinzhouRule) CanWin(handTiles []model.Tile, showTiles []model.ShownTile
 	if len(pos) == 0 { //没有对
 		return false
 	}
-	if len(pos) == 7 { //7对胡
-		return true
-	}
 
+	//有幺九
 	if !r.hasOneOrNine(handTiles, showTiles) {
 		return false
 	}
+	//不缺门
 	if !r.CheckDoor(handTiles, showTiles) {
 		return false
 	}
@@ -106,29 +116,39 @@ func (r *JinzhouRule) CanWin(handTiles []model.Tile, showTiles []model.ShownTile
 		}
 		cards := model.RemovePair(tarTiles, p)
 		if model.IsAllSeqOrTriplet(cards, requestedTripletCount) {
-			return true
+			//中发白为对子，可以免去杠
+			if lastPairTile.Suit == model.Dragon {
+				return true
+			}
+			for _, v := range showTiles {
+				if v.ShownType == config.AddedKong ||
+					v.ShownType == config.ExposedKong ||
+					v.ShownType == config.ConcealedKong {
+					return true
+				}
+			}
+			return false
 		}
 	}
 	return false
 }
 
-func (r *JinzhouRule) hasOneOrNine(handTiles []model.Tile, showTiles []model.ShownTile) bool {
+func (r *ShenyangRule) hasOneOrNine(handTiles []model.Tile, showTiles []model.ShownTile) bool {
 	for _, v := range handTiles {
-		if v.Suit == model.Dragon || v.Number == 1 || v.Number == 9 {
+		if v.Suit == model.Dragon || v.Suit == model.Wind || v.Number == 1 || v.Number == 9 {
 			return true
 		}
 	}
 	for _, v := range showTiles {
 		for _, t := range v.Tiles {
-			if t.Suit == model.Dragon || t.Number == 1 || t.Number == 9 {
+			if t.Suit == model.Dragon || t.Suit == model.Wind || t.Number == 1 || t.Number == 9 {
 				return true
 			}
 		}
 	}
 	return false
 }
-
-func (r *JinzhouRule) CheckDoor(hand []model.Tile, shown []model.ShownTile) bool {
+func (r *ShenyangRule) CheckDoor(hand []model.Tile, shown []model.ShownTile) bool {
 	hasCharacter := false
 	hasBamboo := false
 	hasDot := false
@@ -157,7 +177,7 @@ func (r *JinzhouRule) CheckDoor(hand []model.Tile, shown []model.ShownTile) bool
 	return hasCharacter && hasBamboo && hasDot
 }
 
-func (r *JinzhouRule) canLeftChow(tiles []model.Tile, newTile model.Tile) bool {
+func (r *ShenyangRule) canLeftChow(tiles []model.Tile, newTile model.Tile) bool {
 	right := newTile.GetRightTile()
 	rright := right.GetRightTile()
 	if right == nil || rright == nil {
@@ -166,7 +186,7 @@ func (r *JinzhouRule) canLeftChow(tiles []model.Tile, newTile model.Tile) bool {
 	return model.GetTileCount(tiles, *right) != 0 && model.GetTileCount(tiles, *rright) != 0
 }
 
-func (r *JinzhouRule) canMidChow(tiles []model.Tile, newTile model.Tile) bool {
+func (r *ShenyangRule) canMidChow(tiles []model.Tile, newTile model.Tile) bool {
 	left := newTile.GetLeftTile()
 	right := newTile.GetRightTile()
 	if left == nil || right == nil {
@@ -175,7 +195,7 @@ func (r *JinzhouRule) canMidChow(tiles []model.Tile, newTile model.Tile) bool {
 	return model.GetTileCount(tiles, *left) != 0 && model.GetTileCount(tiles, *right) != 0
 }
 
-func (r *JinzhouRule) canRightChow(tiles []model.Tile, newTile model.Tile) bool {
+func (r *ShenyangRule) canRightChow(tiles []model.Tile, newTile model.Tile) bool {
 	left := newTile.GetLeftTile()
 	lleft := left.GetLeftTile()
 	if left == nil || lleft == nil {

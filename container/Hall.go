@@ -39,10 +39,10 @@ func NewHall(maxRoomSize int) *Hall {
 	return &hall
 }
 
-func (h *Hall) CreateRoom(userID int, passwd string) int {
+func (h *Hall) CreateRoom(userID int, passwd string, rule rule.MahjongRule) int {
 	for i := 0; i < h.maxRoomSize; i++ {
 		if !h.hasRoom(i) {
-			room := NewRoom(i, rule.NewJinzhouRule(), h.destroyCh)
+			room := NewRoom(i, rule, h.destroyCh)
 			room.Start()
 			room.password = passwd
 			room.playerCount = 1

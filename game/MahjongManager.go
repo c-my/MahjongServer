@@ -107,8 +107,8 @@ func (m *MahjongManager) handleStart() {
 	m.resetCancelList()
 	m.resetReadyList()
 
-	//m.dealTile()
-	m.dealTileTest()
+	m.dealTile()
+	//m.dealTileTest()
 	newTile := m.wall.FrontDraw()
 	if newTile.IsEmpty() {
 		m.gameResultCh <- m.getTieResult()

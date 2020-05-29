@@ -3,13 +3,20 @@ package controller
 import (
 	"encoding/json"
 	"github.com/c-my/MahjongServer/container"
+	"github.com/c-my/MahjongServer/rule"
 	"log"
 	"net/http"
 )
 
+const (
+	JinzhouGameRule = iota
+	ShenyangGameRule
+)
+
 type createRoomMsg struct {
-	UserID int    `json:"user_id"`
-	Passwd string `json:"passwd"`
+	UserID   int    `json:"user_id"`
+	Passwd   string `json:"passwd"`
+	GameRule int    `json:"rule"`
 }
 
 type joinRoomMsg struct {
@@ -34,14 +41,16 @@ func RoomCreateHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 	userID := msg.UserID
 	PassWord := msg.Passwd
-	roomID := container.GetHall().CreateRoom(userID, PassWord)
+	GameRule:=msg.GameRule
+	r := getRuleByName(GameRule)
+	roomID := container.GetHall().CreateRoom(userID, PassWord, r)
 	if roomID == -1 {
 		log.Print("failed to create room: max room size reached")
 		j, _ := json.Marshal(failMsg(0))
 		writer.Write(j)
 		return
 	}
-	log.Print("user[", userID, "] created room: ", roomID, " with password[", PassWord, "]")
+	log.Print("user[", userID, "] created room: ", roomID, " with password[", PassWord, "], rule:[",GameRule,"]")
 	j, _ := json.Marshal(createSuccessMsg(roomID))
 	writer.Write(j)
 }
@@ -80,4 +89,15 @@ func createSuccessMsg(roomID int) result {
 
 func failMsg(reason int) result {
 	return result{Success: false, Reason: reason}
+}
+
+func getRuleByName(r int) rule.MahjongRule {
+	switch r {
+	case JinzhouGameRule:
+		return rule.NewJinzhouRule()
+	case ShenyangGameRule:
+		return rule.NewShenyangRule()
+	default:
+		return rule.NewJinzhouRule()
+	}
 }
