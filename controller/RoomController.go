@@ -42,7 +42,7 @@ func RoomCreateHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	log.Print("user[", userID, "] created room: ", roomID, " with password[", PassWord, "]")
-	j, _ := json.Marshal(successMsg())
+	j, _ := json.Marshal(createSuccessMsg(roomID))
 	writer.Write(j)
 }
 
@@ -65,13 +65,17 @@ func RoomJoinHandler(writer http.ResponseWriter, request *http.Request) {
 		j, _ := json.Marshal(failMsg(success))
 		writer.Write(j)
 	} else {
-		j, _ := json.Marshal(successMsg())
+		j, _ := json.Marshal(createSuccessMsg(roomID))
 		writer.Write(j)
 	}
 }
 
 func successMsg() result {
 	return result{Success: true, Reason: 1}
+}
+
+func createSuccessMsg(roomID int) result {
+	return result{Success: true, Reason: roomID}
 }
 
 func failMsg(reason int) result {
