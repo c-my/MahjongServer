@@ -106,7 +106,7 @@ func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendC
 func (m *MahjongManager) handleStart() {
 	m.resetCancelList()
 	m.resetReadyList()
-
+	m.wall.ReShuffle()
 	m.dealTile()
 	//m.dealTileTest()
 	newTile := m.wall.FrontDraw()
@@ -145,7 +145,8 @@ func (m *MahjongManager) handleReady(msg message.GameMsgRecv) {
 	if canStartGame(m.readyList[:]) {
 		//TODO: start game
 		//inform each player their order
-		m.tableOrderCh <- m.firstPlayer
+		//m.tableOrderCh <- m.firstPlayer
+		m.tableOrderCh <- 0
 		m.handleStart()
 	}
 }
@@ -531,6 +532,7 @@ func (m *MahjongManager) handleWin(msg message.GameMsgRecv) {
 		UserList:   m.userList,
 	}
 	m.gameResultCh <- msgSend
+	//自摸庄家不变
 	if msg.TableOrder != m.firstPlayer {
 		m.firstPlayer++
 		m.shiftUserList()
@@ -602,6 +604,12 @@ func (m *MahjongManager) shiftUserList() {
 }
 
 func (m *MahjongManager) dealTile() {
+	//clear player-tile
+	for i := 0; i < 4; i++ {
+		m.playerTile[i].HandTiles = nil
+		m.playerTile[i].ShownTiles = nil
+		m.playerTile[i].DropTiles = nil
+	}
 	for i := 0; i < 3; i++ {
 		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, m.wall.FrontDraw())
 		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, m.wall.FrontDraw())
@@ -631,7 +639,12 @@ func (m *MahjongManager) dealTile() {
 }
 
 func (m *MahjongManager) dealTileTest() {
-
+	//clear player-tile
+	for i := 0; i < 4; i++ {
+		m.playerTile[i].HandTiles = nil
+		m.playerTile[i].ShownTiles = nil
+		m.playerTile[i].DropTiles = nil
+	}
 	for i := 1; i <= 6; i++ {
 		m.playerTile[0].HandTiles = append(m.playerTile[0].HandTiles, model.Tile{Suit: model.Character, Number: i})
 		m.playerTile[1].HandTiles = append(m.playerTile[1].HandTiles, model.Tile{Suit: model.Character, Number: i}, model.Tile{Suit: model.Character, Number: i})
