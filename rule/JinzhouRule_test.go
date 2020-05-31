@@ -112,10 +112,10 @@ func TestJinzhouRule_CanWin(t *testing.T) {
 			model.Tile{2, 6},
 			false}, //缺门
 		{[]model.Tile{{0, 1}, {0, 1},
-			{0, 4},	{0, 4}, {0, 4},
+			{0, 4}, {0, 4}, {0, 4},
 			{0, 6}, {0, 8},
 			{1, 5}, {1, 6}, {1, 7},
-			{2,9},{2,9},{2,9}},
+			{2, 9}, {2, 9}, {2, 9}},
 			[]model.ShownTile{},
 			model.Tile{0, 7},
 			true},

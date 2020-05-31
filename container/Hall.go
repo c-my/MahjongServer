@@ -34,7 +34,7 @@ func GetHall() *Hall {
 }
 
 func NewHall(maxRoomSize int) *Hall {
-	hall:=Hall{maxRoomSize: maxRoomSize, rooms: map[int]*Room{}, players: map[int]int{}, destroyCh: make(chan int)}
+	hall := Hall{maxRoomSize: maxRoomSize, rooms: map[int]*Room{}, players: map[int]int{}, destroyCh: make(chan int)}
 	go hall.roomController()
 	return &hall
 }

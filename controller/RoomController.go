@@ -41,7 +41,7 @@ func RoomCreateHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 	userID := msg.UserID
 	PassWord := msg.Passwd
-	GameRule:=msg.GameRule
+	GameRule := msg.GameRule
 	r := getRuleByName(GameRule)
 	roomID := container.GetHall().CreateRoom(userID, PassWord, r)
 	if roomID == -1 {
@@ -50,7 +50,7 @@ func RoomCreateHandler(writer http.ResponseWriter, request *http.Request) {
 		writer.Write(j)
 		return
 	}
-	log.Print("user[", userID, "] created room: ", roomID, " with password[", PassWord, "], rule:[",GameRule,"]")
+	log.Print("user[", userID, "] created room: ", roomID, " with password[", PassWord, "], rule:[", GameRule, "]")
 	j, _ := json.Marshal(createSuccessMsg(roomID))
 	writer.Write(j)
 }

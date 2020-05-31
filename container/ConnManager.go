@@ -88,12 +88,10 @@ func (m *ConnManager) Broadcaster() {
 			for _, conn := range m.conns {
 				conn.WriteJSON(msg)
 			}
-		case msg := <-m.exitCh:
-			if msg {
-				log.Println("broadcaster exit")
-				m.destroyCh <- m.roomID
-				return
-			}
+		case _ = <-m.exitCh:
+			log.Println("broadcaster exit")
+			m.destroyCh <- m.roomID
+			return
 		}
 	}
 }
