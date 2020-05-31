@@ -158,9 +158,9 @@ func (m *MahjongManager) Draw(hand []model.Tile, shown []model.ShownTile, newTil
 func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled bool) {
 	currentOrder := msg.TableOrder
 	m.lastTableOrder = msg.TableOrder
-	m.resetCancelList()
 	lastAct := config.Cancel
 	if !isJustCanceled { //从手牌中删除
+		m.resetCancelList()
 		lastAct = config.Discard
 		m.lastMsgRecv = msg
 		hand := m.playerTile[msg.TableOrder].HandTiles
