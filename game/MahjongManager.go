@@ -20,7 +20,7 @@ type MahjongManager struct {
 	gameResultCh chan message.GameResultMsg
 	getReadyCh   chan message.GetReadyMsg
 	chatCh       chan message.ChatMsg
-	exitCh       chan bool
+	loopOverCh   chan bool
 
 	lastTableOrder    int
 	currentTableOrder int
@@ -39,7 +39,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	gameResultCh chan message.GameResultMsg,
 	getReadyCh chan message.GetReadyMsg,
 	chatCh chan message.ChatMsg,
-	exitCh chan bool,
+	loopOverCh chan bool,
 	r rule.MahjongRule) *MahjongManager {
 	mahjong := MahjongManager{}
 	mahjong.rules = r
@@ -52,7 +52,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	mahjong.gameResultCh = gameResultCh
 	mahjong.getReadyCh = getReadyCh
 	mahjong.chatCh = chatCh
-	mahjong.exitCh = exitCh
+	mahjong.loopOverCh = loopOverCh
 	return &mahjong
 }
 
@@ -68,8 +68,9 @@ func (m MahjongManager) GetFirstPlayer() {
 func (m *MahjongManager) gameLoop(gameRecvCh chan message.GameMsgRecv, gameSendCh chan message.GameMsgSend) {
 	for {
 		select {
-		case e := <-m.exitCh:
+		case e := <-m.loopOverCh:
 			if e {
+				log.Println("game loop exit")
 				return
 			}
 		case msg := <-gameRecvCh:

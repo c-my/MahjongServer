@@ -19,6 +19,7 @@ type ConnManager struct {
 	getReadyCh   chan message.GetReadyMsg
 	chatCh       chan message.ChatMsg
 	exitCh       chan bool
+	loopOverCh   chan bool
 	destroyCh    chan int
 
 	roomID int
@@ -33,6 +34,7 @@ func NewConnManager(roomID int,
 	getReadyCh chan message.GetReadyMsg,
 	chatCh chan message.ChatMsg,
 	exitCh chan bool,
+	loopOverCh chan bool,
 	destroyCh chan int) *ConnManager {
 	connManager := ConnManager{playersCount: playersCount,
 		conns:        make([]*websocket.Conn, 0),
@@ -43,6 +45,7 @@ func NewConnManager(roomID int,
 		getReadyCh:   getReadyCh,
 		chatCh:       chatCh,
 		exitCh:       exitCh,
+		loopOverCh:   loopOverCh,
 		destroyCh:    destroyCh,
 		roomID:       roomID,
 	}
@@ -117,6 +120,7 @@ func (m *ConnManager) checkConn(c *websocket.Conn) {
 		conn.Close()
 	}
 	m.exitCh <- true
+	m.loopOverCh <- true
 }
 
 func (m *ConnManager) connListener(conn *websocket.Conn, gameRecvCh chan message.GameMsgRecv, chatCh chan message.ChatMsg) {
