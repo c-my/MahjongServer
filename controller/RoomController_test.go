@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/c-my/MahjongServer/container"
+	"github.com/c-my/MahjongServer/rule"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +32,7 @@ func TestRoomCreateHandler(t *testing.T) {
 }
 
 func TestRoomJoinHandler(t *testing.T) {
-	roomID := container.GetHall().CreateRoom(003, "pp")
+	roomID := container.GetHall().CreateRoom(003, "pp", rule.NewJinzhouRule())
 	body, _ := json.Marshal(joinRoomMsg{
 		UserID:   004,
 		RoomID:   roomID,

@@ -1,6 +1,9 @@
 package container
 
-import "testing"
+import (
+	"github.com/c-my/MahjongServer/rule"
+	"testing"
+)
 
 func TestGetHall(t *testing.T) {
 	hall := GetHall()
@@ -15,7 +18,7 @@ func TestGetHall(t *testing.T) {
 
 func TestHall_CreateRoom(t *testing.T) {
 	hall := GetHall()
-	roomID := hall.CreateRoom(0001, "ppp")
+	roomID := hall.CreateRoom(0001, "ppp", rule.NewJinzhouRule())
 	if roomID == -1 {
 		t.Errorf("failed to create first room")
 	}
@@ -23,7 +26,7 @@ func TestHall_CreateRoom(t *testing.T) {
 
 func TestHall_JoinRoom(t *testing.T) {
 	hall := GetHall()
-	roomID := hall.CreateRoom(0002, "ppp")
+	roomID := hall.CreateRoom(0002, "ppp", rule.NewShenyangRule())
 	if hall.JoinRoom(0003, roomID, "ppp") != Success {
 		t.Errorf("2nd player joined failed")
 	}
@@ -43,7 +46,7 @@ func TestHall_JoinRoom(t *testing.T) {
 
 func TestHall_GetRoomID(t *testing.T) {
 	hall := GetHall()
-	roomID := hall.CreateRoom(0007, "ppp")
+	roomID := hall.CreateRoom(0007, "ppp", rule.NewJinzhouRule())
 	if hall.GetRoomID(7) != roomID {
 		t.Errorf("get wrong roomID")
 	}

@@ -111,6 +111,14 @@ func TestJinzhouRule_CanWin(t *testing.T) {
 			[]model.ShownTile{{config.ConcealedKong, []model.Tile{{0, 3}, {0, 3}, {0, 3}, {0, 3}}}},
 			model.Tile{2, 6},
 			false}, //缺门
+		{[]model.Tile{{0, 1}, {0, 1},
+			{0, 4},	{0, 4}, {0, 4},
+			{0, 6}, {0, 8},
+			{1, 5}, {1, 6}, {1, 7},
+			{2,9},{2,9},{2,9}},
+			[]model.ShownTile{},
+			model.Tile{0, 7},
+			true},
 	}
 	for _, test := range tests {
 		if j.CanWin(test.hand, test.shown, test.newTile) != test.want {
@@ -166,7 +174,8 @@ func BenchmarkJinzhouRule_CanWin_LackDoor(b *testing.B) {
 		{2, 1}, {2, 2}, {2, 3}, {2, 7}, {2, 8}, {2, 9}, {2, 9}},
 		[]model.ShownTile{{config.ConcealedKong, []model.Tile{{0, 3}, {0, 3}, {0, 3}, {0, 3}}}},
 		model.Tile{2, 6},
-		false} //缺门
+		false,
+	} //缺门
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		j.CanWin(test.hand, test.shown, test.newTile)
