@@ -34,3 +34,8 @@ type ChatMsg struct {
 	From    int    `json:"from"`
 	Content string `json:"content"`
 }
+
+type JoinMsg struct {
+	MsgType  int        `json:"msg_type"`
+	UserList []UserInfo `json:"user_list"`
+}

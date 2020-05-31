@@ -17,6 +17,7 @@ type ConnManager struct {
 	tableOrderCh chan int
 	gameResultCh chan message.GameResultMsg
 	getReadyCh   chan message.GetReadyMsg
+	joinCh       chan message.JoinMsg
 	chatCh       chan message.ChatMsg
 	exitCh       chan bool
 	loopOverCh   chan bool
@@ -32,6 +33,7 @@ func NewConnManager(roomID int,
 	tableOrderCh chan int,
 	gameResultCh chan message.GameResultMsg,
 	getReadyCh chan message.GetReadyMsg,
+	joinCh chan message.JoinMsg,
 	chatCh chan message.ChatMsg,
 	exitCh chan bool,
 	loopOverCh chan bool,
@@ -43,6 +45,7 @@ func NewConnManager(roomID int,
 		tableOrderCh: tableOrderCh,
 		gameResultCh: gameResultCh,
 		getReadyCh:   getReadyCh,
+		joinCh:       joinCh,
 		chatCh:       chatCh,
 		exitCh:       exitCh,
 		loopOverCh:   loopOverCh,
@@ -88,6 +91,11 @@ func (m *ConnManager) Broadcaster() {
 			}
 		case msg := <-m.getReadyCh:
 			log.Println("broadcast ready message")
+			for _, conn := range m.conns {
+				conn.WriteJSON(msg)
+			}
+		case msg := <-m.joinCh:
+			log.Println("broadcast join message")
 			for _, conn := range m.conns {
 				conn.WriteJSON(msg)
 			}

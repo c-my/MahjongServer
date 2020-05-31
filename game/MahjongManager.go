@@ -19,6 +19,7 @@ type MahjongManager struct {
 	tableOrderCh chan int
 	gameResultCh chan message.GameResultMsg
 	getReadyCh   chan message.GetReadyMsg
+	joinCh       chan message.JoinMsg
 	chatCh       chan message.ChatMsg
 	loopOverCh   chan bool
 
@@ -38,6 +39,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	tableOrderCh chan int,
 	gameResultCh chan message.GameResultMsg,
 	getReadyCh chan message.GetReadyMsg,
+	joinCh chan message.JoinMsg,
 	chatCh chan message.ChatMsg,
 	loopOverCh chan bool,
 	r rule.MahjongRule) *MahjongManager {
@@ -51,6 +53,7 @@ func NewMahjongManager(gameRecvCh chan message.GameMsgRecv,
 	mahjong.tableOrderCh = tableOrderCh
 	mahjong.gameResultCh = gameResultCh
 	mahjong.getReadyCh = getReadyCh
+	mahjong.joinCh = joinCh
 	mahjong.chatCh = chatCh
 	mahjong.loopOverCh = loopOverCh
 	return &mahjong
@@ -569,6 +572,11 @@ func (m *MahjongManager) resetCancelList() {
 
 func (m *MahjongManager) AddUserInfo(info message.UserInfo) {
 	m.userList = append(m.userList, info)
+	msg := message.JoinMsg{
+		MsgType:  config.UserJoinMsgType,
+		UserList: m.userList,
+	}
+	m.joinCh <- msg
 }
 
 func (m *MahjongManager) resetReadyList() {
