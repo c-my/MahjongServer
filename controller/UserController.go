@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"github.com/c-my/MahjongServer/datamodel"
 	"github.com/c-my/MahjongServer/repository"
@@ -33,7 +34,7 @@ func UserCreateHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 	newUser := datamodel.User{
 		UserName: msg.UserName,
-		Password: msg.Password,
+		Password: encodePassword(msg.Password),
 		NickName: msg.Nickname,
 		Gender:   msg.Gender,
 	}
@@ -80,6 +81,7 @@ func UserLoginHandler(writer http.ResponseWriter, request *http.Request) {
 }
 
 func encodePassword(password string) string {
-	//TODO:use a real encoder
-	return password
+	h := sha256.New()
+	h.Write([]byte(password))
+	return string(h.Sum(nil))
 }
