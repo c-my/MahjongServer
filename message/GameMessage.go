@@ -18,6 +18,7 @@ type GameMsgRecv struct {
 type GameMsgSend struct {
 	MsgType int `json:"msg_type"`
 
+	FirstPlayer      int        `json:"first_player"`
 	TableOrder       int        `json:"table_order"`       // 发送给谁，以后可能会用到
 	CurrentTurn      int        `json:"current_turn"`      // 当前轮到的玩家
 	CurrentTile      model.Tile `json:"current_tile"`      // 玩家收到的牌

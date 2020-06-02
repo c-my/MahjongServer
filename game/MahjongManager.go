@@ -126,6 +126,7 @@ func (m *MahjongManager) handleStart() {
 
 	msgSend = message.GameMsgSend{
 		MsgType:          config.GameMsgType,
+		FirstPlayer:      m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      m.firstPlayer,
 		CurrentTile:      newTile,
@@ -183,6 +184,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 			//send msg to this potential winner
 			msgSend := message.GameMsgSend{
 				MsgType:          config.GameMsgType,
+				FirstPlayer: m.firstPlayer,
 				TableOrder:       -1,
 				CurrentTurn:      order,
 				CurrentTile:      msg.Tile,
@@ -218,6 +220,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 			}
 			msgSend := message.GameMsgSend{
 				MsgType:          config.GameMsgType,
+				FirstPlayer: m.firstPlayer,
 				TableOrder:       -1,
 				CurrentTurn:      order,
 				CurrentTile:      msg.Tile,
@@ -246,6 +249,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 			}
 			msgSend := message.GameMsgSend{
 				MsgType:          config.GameMsgType,
+				FirstPlayer: m.firstPlayer,
 				TableOrder:       -1,
 				CurrentTurn:      order,
 				CurrentTile:      msg.Tile,
@@ -270,6 +274,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 	if !m.cancelList[order] && canChow {
 		msgSend := message.GameMsgSend{
 			MsgType:          config.GameMsgType,
+			FirstPlayer: m.firstPlayer,
 			TableOrder:       -1,
 			CurrentTurn:      order,
 			CurrentTile:      msg.Tile,
@@ -302,6 +307,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 	model.SortTiles(m.playerTile[m.currentTableOrder].HandTiles)
 	msgSend := message.GameMsgSend{
 		MsgType:          config.GameMsgType,
+		FirstPlayer: m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      m.currentTableOrder,
 		CurrentTile:      newTile,
@@ -354,6 +360,7 @@ func (m *MahjongManager) handleChow(msg message.GameMsgRecv) {
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:     config.GameMsgType,
+		FirstPlayer: m.firstPlayer,
 		TableOrder:  -1,
 		CurrentTurn: msg.TableOrder,
 		//CurrentTile:      nil,
@@ -386,6 +393,7 @@ func (m *MahjongManager) handlePong(msg message.GameMsgRecv) {
 	// 发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:     config.GameMsgType,
+		FirstPlayer: m.firstPlayer,
 		TableOrder:  -1,
 		CurrentTurn: m.currentTableOrder,
 		//CurrentTile:      nil, //其他玩家不会管， 当前玩家会忽略
@@ -427,6 +435,7 @@ func (m *MahjongManager) handleExposedKong(msg message.GameMsgRecv) {
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          config.GameMsgType,
+		FirstPlayer: m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      msg.TableOrder,
 		CurrentTile:      newTile,
@@ -465,6 +474,7 @@ func (m *MahjongManager) handleConcealedKong(msg message.GameMsgRecv) {
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          config.GameMsgType,
+		FirstPlayer: m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      msg.TableOrder,
 		CurrentTile:      newTile,
@@ -514,6 +524,7 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          config.GameMsgType,
+		FirstPlayer: m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      msg.TableOrder,
 		CurrentTile:      newTile,
