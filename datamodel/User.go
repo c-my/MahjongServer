@@ -15,4 +15,7 @@ type User struct {
 
 	NickName string
 	Gender   int
+
+	WinTime  int
+	GameTime int
 }

@@ -87,6 +87,7 @@ func (h *Hall) AddUserToRoom(roomID int, conn *websocket.Conn, userID int) {
 	h.rooms[roomID].AddConn(conn)
 	user, _ := repository.UserRepo.SelectByID(userID)
 	h.rooms[roomID].AddUserInfo(message.UserInfo{
+		UserID:   user.ID,
 		Nickname: user.NickName,
 		Gender:   user.Gender,
 	})

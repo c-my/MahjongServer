@@ -37,6 +37,8 @@ func UserCreateHandler(writer http.ResponseWriter, request *http.Request) {
 		Password: encodePassword(msg.Password),
 		NickName: msg.Nickname,
 		Gender:   msg.Gender,
+		WinTime:  0,
+		GameTime: 0,
 	}
 	success, newID := repository.UserRepo.Append(newUser)
 	if !success { //user already exist

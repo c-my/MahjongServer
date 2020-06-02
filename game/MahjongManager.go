@@ -4,6 +4,7 @@ import (
 	"github.com/c-my/MahjongServer/config"
 	"github.com/c-my/MahjongServer/message"
 	"github.com/c-my/MahjongServer/model"
+	"github.com/c-my/MahjongServer/repository"
 	"github.com/c-my/MahjongServer/rule"
 	"log"
 )
@@ -184,7 +185,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 			//send msg to this potential winner
 			msgSend := message.GameMsgSend{
 				MsgType:          config.GameMsgType,
-				FirstPlayer: m.firstPlayer,
+				FirstPlayer:      m.firstPlayer,
 				TableOrder:       -1,
 				CurrentTurn:      order,
 				CurrentTile:      msg.Tile,
@@ -220,7 +221,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 			}
 			msgSend := message.GameMsgSend{
 				MsgType:          config.GameMsgType,
-				FirstPlayer: m.firstPlayer,
+				FirstPlayer:      m.firstPlayer,
 				TableOrder:       -1,
 				CurrentTurn:      order,
 				CurrentTile:      msg.Tile,
@@ -249,7 +250,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 			}
 			msgSend := message.GameMsgSend{
 				MsgType:          config.GameMsgType,
-				FirstPlayer: m.firstPlayer,
+				FirstPlayer:      m.firstPlayer,
 				TableOrder:       -1,
 				CurrentTurn:      order,
 				CurrentTile:      msg.Tile,
@@ -274,7 +275,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 	if !m.cancelList[order] && canChow {
 		msgSend := message.GameMsgSend{
 			MsgType:          config.GameMsgType,
-			FirstPlayer: m.firstPlayer,
+			FirstPlayer:      m.firstPlayer,
 			TableOrder:       -1,
 			CurrentTurn:      order,
 			CurrentTile:      msg.Tile,
@@ -307,7 +308,7 @@ func (m *MahjongManager) handleDiscard(msg message.GameMsgRecv, isJustCanceled b
 	model.SortTiles(m.playerTile[m.currentTableOrder].HandTiles)
 	msgSend := message.GameMsgSend{
 		MsgType:          config.GameMsgType,
-		FirstPlayer: m.firstPlayer,
+		FirstPlayer:      m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      m.currentTableOrder,
 		CurrentTile:      newTile,
@@ -435,7 +436,7 @@ func (m *MahjongManager) handleExposedKong(msg message.GameMsgRecv) {
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          config.GameMsgType,
-		FirstPlayer: m.firstPlayer,
+		FirstPlayer:      m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      msg.TableOrder,
 		CurrentTile:      newTile,
@@ -474,7 +475,7 @@ func (m *MahjongManager) handleConcealedKong(msg message.GameMsgRecv) {
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          config.GameMsgType,
-		FirstPlayer: m.firstPlayer,
+		FirstPlayer:      m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      msg.TableOrder,
 		CurrentTile:      newTile,
@@ -524,7 +525,7 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 	//发送消息
 	msgSend := message.GameMsgSend{
 		MsgType:          config.GameMsgType,
-		FirstPlayer: m.firstPlayer,
+		FirstPlayer:      m.firstPlayer,
 		TableOrder:       -1,
 		CurrentTurn:      msg.TableOrder,
 		CurrentTile:      newTile,
@@ -540,6 +541,8 @@ func (m *MahjongManager) handleAddedKong(msg message.GameMsgRecv) {
 
 func (m *MahjongManager) handleWin(msg message.GameMsgRecv) {
 	m.resetCancelList()
+	winnerID := m.userList[msg.TableOrder].UserID
+	repository.UserRepo.AddWinRecord(winnerID)
 	msgSend := message.GameResultMsg{
 		MsgType:    config.GameResultMsgType,
 		Winner:     msg.TableOrder,
@@ -598,6 +601,9 @@ func (m *MahjongManager) resetReadyList() {
 }
 
 func (m *MahjongManager) getTieResult() message.GameResultMsg {
+	for i := 0; i < 4; i++ {
+		repository.UserRepo.AddGameRecord(m.userList[i].UserID)
+	}
 	return message.GameResultMsg{
 		MsgType:    config.GameResultMsgType,
 		Winner:     -1,

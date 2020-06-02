@@ -66,7 +66,7 @@ func TestUserLoginHandler(t *testing.T) {
 	name := time.Now().String()
 	repository.UserRepo.Append(datamodel.User{
 		UserName: name,
-		Password: "pass",
+		Password: encodePassword("pass"),
 	})
 	body, _ = json.Marshal(loginMsg{
 		UserName: name,
@@ -84,3 +84,4 @@ func TestUserLoginHandler(t *testing.T) {
 		t.Errorf("login failed")
 	}
 }
+

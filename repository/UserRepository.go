@@ -25,6 +25,26 @@ func (r *UserRepository) SelectByID(userID int) (user datamodel.User, notfound b
 	return
 }
 
+func (r *UserRepository) AddWinRecord(userID uint) {
+	var user datamodel.User
+	notfound := r.source.Where("ID = ?", userID).First(&user).RecordNotFound()
+	if notfound {
+		return
+	}
+	user.WinTime = user.WinTime + 1
+	r.source.Save(&user)
+}
+
+func (r *UserRepository) AddGameRecord(userID uint) {
+	var user datamodel.User
+	notfound := r.source.Where("ID = ?", userID).First(&user).RecordNotFound()
+	if notfound {
+		return
+	}
+	user.GameTime = user.GameTime + 1
+	r.source.Save(&user)
+}
+
 func (r *UserRepository) Append(user datamodel.User) (bool, uint) {
 	var u datamodel.User
 	if err := r.source.Where("username = ?", user.UserName).First(&u).Error; err != nil {
