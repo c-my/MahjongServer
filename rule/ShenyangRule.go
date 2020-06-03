@@ -75,10 +75,6 @@ func (r *ShenyangRule) CanAddedKong(shown []model.ShownTile, newTile model.Tile)
 }
 
 func (r *ShenyangRule) CanWin(handTiles []model.Tile, showTiles []model.ShownTile, newTile model.Tile) bool {
-	//必须开门
-	if len(showTiles) == 0 {
-		return false
-	}
 
 	tarTiles := make([]model.Tile, len(handTiles))
 	copy(tarTiles, handTiles)
@@ -97,6 +93,10 @@ func (r *ShenyangRule) CanWin(handTiles []model.Tile, showTiles []model.ShownTil
 	}
 	//不缺门
 	if !r.CheckDoor(handTiles, showTiles) {
+		return false
+	}
+	//闭门
+	if !r.isOpenDoor(showTiles){
 		return false
 	}
 	var requestedTripletCount = 1
@@ -122,8 +122,7 @@ func (r *ShenyangRule) CanWin(handTiles []model.Tile, showTiles []model.ShownTil
 			}
 			for _, v := range showTiles {
 				if v.ShownType == config.AddedKong ||
-					v.ShownType == config.ExposedKong ||
-					v.ShownType == config.ConcealedKong {
+					v.ShownType == config.ExposedKong {
 					return true
 				}
 			}
@@ -202,4 +201,18 @@ func (r *ShenyangRule) canRightChow(tiles []model.Tile, newTile model.Tile) bool
 		return false
 	}
 	return model.GetTileCount(tiles, *left) != 0 && model.GetTileCount(tiles, *lleft) != 0
+}
+
+func (r *ShenyangRule) isOpenDoor(shown []model.ShownTile) bool {
+	if shown == nil || len(shown) == 0 {
+		return false
+	}
+	for _, s := range shown {
+		if s.ShownType == config.ConcealedKong {
+			continue
+		} else {
+			return true
+		}
+	}
+	return false
 }
