@@ -554,7 +554,7 @@ func (m *MahjongManager) handleWin(msg message.GameMsgRecv) {
 	//自摸庄家不变
 	if msg.TableOrder != m.firstPlayer {
 		m.firstPlayer++
-		m.shiftUserList()
+		//m.shiftUserList()
 	}
 }
 

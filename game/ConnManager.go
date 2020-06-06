@@ -1,4 +1,4 @@
-package container
+package game
 
 import (
 	"encoding/json"

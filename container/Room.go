@@ -9,7 +9,7 @@ import (
 
 type Room struct {
 	roomID         int
-	connManager    *ConnManager
+	connManager    *game.ConnManager
 	mahjongManager *game.MahjongManager
 
 	gameRecvCh   chan message.GameMsgRecv
@@ -44,7 +44,7 @@ func NewRoom(roomID int, rule rule.MahjongRule, destroyCh chan int) *Room {
 		getReadyCh:     getReadyChannel,
 		chatCh:         chatChannel,
 		destroyCh:      destroyCh,
-		connManager:    NewConnManager(roomID, 4, gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, joinChannel, chatChannel, exitChannel, loopOverChannel, destroyCh),
+		connManager:    game.NewConnManager(roomID, 4, gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, joinChannel, chatChannel, exitChannel, loopOverChannel, destroyCh),
 		mahjongManager: game.NewMahjongManager(gameRecvChannel, gameSendChannel, tableOrderChannel, gameResultChannel, getReadyChannel, joinChannel, chatChannel, loopOverChannel, rule),
 	}
 }
